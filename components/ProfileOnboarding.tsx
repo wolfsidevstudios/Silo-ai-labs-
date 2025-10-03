@@ -26,37 +26,35 @@ const ProfileOnboarding: React.FC = () => {
 
     setIsSubmitting(true);
     
-    const profileToUpdate = {
+    const profileData = {
+      id: session.user.id,
       name,
-      username: username,
+      username,
       avatar,
       bio,
     };
 
     try {
-      const { data, error } = await supabase
+      // Use `upsert` to create the profile row if it doesn't exist for the new user.
+      // This fixes the issue where an `update` would fail on a non-existent row.
+      const { error } = await supabase
         .from('profiles')
-        .update(profileToUpdate)
-        .eq('id', session.user.id)
-        .select(); // Remove .single() to fix coercion error
+        .upsert(profileData)
+        .select()
+        .single();
 
       if (error) {
         throw error;
       }
-      
-      // Manually check if any row was updated, as .single() was removed
-      if (!data || data.length === 0) {
-        throw new Error("Could not find a profile to update. Please contact support.");
-      }
 
       await refreshProfile();
-      // On success, the component will unmount as useAuth provides the new profile.
+      // On success, useAuth will update, and the app will transition out of onboarding.
     } catch (error: any) {
-      console.error('Error updating profile:', error);
+      console.error('Error saving profile:', error);
       if (error?.code === '23505') { // Handle unique constraint violation for username
           alert('This username is already taken. Please choose another one.');
       } else {
-          alert(`Could not update your profile. Please try again. Details: ${error.message}`);
+          alert(`Could not save your profile. Please try again. Details: ${error.message}`);
       }
       setIsSubmitting(false); // Make sure to reset loading state on failure
     }
