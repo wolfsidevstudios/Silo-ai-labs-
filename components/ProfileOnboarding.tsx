@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ONBOARDING_AVATARS } from '../constants';
 import type { UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
 
@@ -40,11 +39,6 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
     }
   };
 
-  const handleSkipAvatar = () => {
-    setAvatar(APP_ICON_URL);
-    setStep('preview');
-  };
-
   const renderStep = () => {
     switch (step) {
       case 'details':
@@ -83,33 +77,22 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
       
       case 'avatar':
         return (
-             <div className="w-full max-w-2xl space-y-6 text-center animate-fade-in">
-                <h1 className="text-4xl font-bold">Choose Your Avatar</h1>
-                <p className="text-gray-400">Custom avatars coming soon! For now, pick one of our AI-generated options.</p>
-                <div className="flex overflow-x-auto space-x-4 pb-4 -mx-4 px-4">
-                    {ONBOARDING_AVATARS.map(src => (
-                        <button key={src} onClick={() => setAvatar(src)} className="flex-shrink-0 focus:outline-none">
-                            <img 
-                                src={src}
-                                alt="AI Avatar"
-                                className={`w-32 h-32 md:w-40 md:h-40 object-cover rounded-full border-4 transition-all duration-300 ${avatar === src ? 'border-purple-500 scale-105' : 'border-white/20 hover:border-white/50'}`}
-                            />
-                        </button>
-                    ))}
+             <div className="w-full max-w-md space-y-6 text-center animate-fade-in">
+                <h1 className="text-4xl font-bold">Set Your Avatar</h1>
+                <p className="text-gray-400">You can upload a custom avatar from your profile page later.</p>
+                <div className="flex justify-center items-center h-40">
+                    <img src={APP_ICON_URL} alt="Default Avatar" className="w-32 h-32 rounded-full border-4 border-white/20" />
                 </div>
-                 <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <p className="text-sm text-gray-500">For now, you'll have our default avatar.</p>
+                <div className="flex justify-center gap-4">
                     <button
-                      onClick={handleSkipAvatar}
-                      className="w-full sm:w-auto px-8 py-4 rounded-full font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors"
+                      onClick={() => {
+                          setAvatar(APP_ICON_URL);
+                          setStep('preview');
+                      }}
+                      className="w-full sm:w-auto px-8 py-4 rounded-full font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
                     >
-                      Skip For Now
-                    </button>
-                    <button
-                      onClick={() => setStep('preview')}
-                      disabled={!avatar}
-                      className="w-full sm:w-auto px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
-                    >
-                      Next
+                      Continue
                     </button>
                 </div>
             </div>

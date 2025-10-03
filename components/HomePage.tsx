@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DAILY_INSPIRATION, TOP_VIDEOS, RECENT_VIDEOS, TRENDING_SHORTS } from '../constants';
-import InspirationCard from './InspirationCard';
 import VideoCard from './VideoCard';
-import ShortCard from './ShortCard';
 import YouTubeVideoCard from './YouTubeVideoCard';
 import type { Video } from '../types';
 import { supabase } from '../lib/supabase';
@@ -19,7 +16,7 @@ const VideoSection: React.FC<{ title: string; videos: Video[] }> = ({ title, vid
 );
 
 const HomePage: React.FC = () => {
-  const [allRecentVideos, setAllRecentVideos] = useState<Video[]>(RECENT_VIDEOS);
+  const [allRecentVideos, setAllRecentVideos] = useState<Video[]>([]);
   const [youtubeVideos, setYoutubeVideos] = useState<Video[]>([]);
 
   useEffect(() => {
@@ -31,7 +28,7 @@ const HomePage: React.FC = () => {
 
       if (error) {
         console.error("Failed to fetch posts from Supabase", error);
-        setAllRecentVideos(RECENT_VIDEOS); // Fallback to constant data on error
+        setAllRecentVideos([]); // Fallback to empty on error
       } else {
         const mappedVideos: Video[] = data.map(post => ({
           id: post.id,
@@ -51,8 +48,7 @@ const HomePage: React.FC = () => {
         const uploadedVideos = mappedVideos.filter(post => !post.youtubeId);
         
         setYoutubeVideos(ytVideos);
-        // Prepend fetched videos to any default/fallback videos
-        setAllRecentVideos([...uploadedVideos, ...RECENT_VIDEOS]);
+        setAllRecentVideos(uploadedVideos);
       }
     };
     fetchPosts();
@@ -66,11 +62,6 @@ const HomePage: React.FC = () => {
         <p className="text-lg text-gray-400 mt-2">A social experience powered by AI.</p>
       </header>
 
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold mb-6 text-gray-200">Daily AI Inspiration</h2>
-        <InspirationCard inspiration={DAILY_INSPIRATION} />
-      </section>
-
       {youtubeVideos.length > 0 && (
          <section className="mb-12">
             <h2 className="text-3xl font-bold mb-6 text-gray-200">YouTube AI Videos</h2>
@@ -82,18 +73,9 @@ const HomePage: React.FC = () => {
           </section>
       )}
 
-      <VideoSection title="Top Videos" videos={TOP_VIDEOS} />
-
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold mb-6 text-gray-200">Top Trending AI Shorts</h2>
-        <div className="flex overflow-x-auto space-x-6 pb-4 -mx-1 px-1">
-          {TRENDING_SHORTS.map((video) => (
-            <ShortCard key={video.id} video={video} />
-          ))}
-        </div>
-      </section>
-
-      <VideoSection title="Recent Videos" videos={allRecentVideos} />
+      {allRecentVideos.length > 0 && (
+        <VideoSection title="Recent Videos" videos={allRecentVideos} />
+      )}
 
       <section>
         <h2 className="text-3xl font-bold mb-6 text-gray-200">Other Sections</h2>

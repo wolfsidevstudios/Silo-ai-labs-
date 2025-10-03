@@ -35,6 +35,18 @@ const ContestantCard: React.FC<ContestantCardProps> = ({ contestant, onVote }) =
 
 const BattlePage: React.FC = () => {
   const [currentBattleIndex, setCurrentBattleIndex] = useState(0);
+
+  if (BATTLE_ARENA_ITEMS.length === 0) {
+      return (
+          <div className="animate-fade-in text-center">
+              <header className="mb-12">
+                  <h1 className="text-5xl font-extrabold text-white tracking-tight">AI Battle Arena</h1>
+                  <p className="text-lg text-gray-400 mt-2">The arena is quiet for now. Check back later for new battles!</p>
+              </header>
+               <div className="mt-16 text-6xl animate-pulse">⚔️</div>
+          </div>
+      );
+  }
   
   const handleVote = () => {
     setCurrentBattleIndex(prevIndex => (prevIndex + 1) % BATTLE_ARENA_ITEMS.length);
