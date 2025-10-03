@@ -38,6 +38,7 @@ const HomePage: React.FC = () => {
           imageUrl: post.imageUrl,
           duration: post.duration,
           youtubeId: post.youtubeId,
+          videoUrl: post.videoUrl,
           description: post.description,
           hashtags: post.hashtags,
           model: post.model,

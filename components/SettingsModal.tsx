@@ -3,22 +3,24 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { UserProfile } from '../types';
 import ToggleSwitch from './ToggleSwitch';
+import { useApiKey } from '../contexts/ApiKeyContext';
 
 // Icons
 const UserCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>;
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>;
 const ShieldCheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" /></svg>;
-
+const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" /></svg>;
 
 interface SettingsModalProps {
   profile: UserProfile;
   onClose: () => void;
 }
 
-type SettingsTab = 'Account' | 'Notifications' | 'Privacy';
+type SettingsTab = 'Account' | 'Notifications' | 'Privacy' | 'Integrations';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ profile, onClose }) => {
   const { refreshProfile, signOut } = useAuth();
+  const { apiKey, setApiKey } = useApiKey();
   const [activeTab, setActiveTab] = useState<SettingsTab>('Account');
 
   // State for Account details
@@ -28,6 +30,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ profile, onClose }) => {
   const [avatar, setAvatar] = useState(profile.avatar || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // State for API Key
+  const [localApiKey, setLocalApiKey] = useState(apiKey || '');
 
   // State for Notifications (placeholders)
   const [emailNotifications, setEmailNotifications] = useState({ followers: true, comments: true, likes: false });
@@ -62,10 +67,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ profile, onClose }) => {
     setLoading(false);
   };
 
+  const handleSaveApiKey = () => {
+    setApiKey(localApiKey);
+    alert('API Key saved!');
+  };
+
   const menuItems = [
     { id: 'Account', label: 'Account', icon: <UserCircleIcon /> },
     { id: 'Notifications', label: 'Notifications', icon: <BellIcon /> },
     { id: 'Privacy', label: 'Privacy', icon: <ShieldCheckIcon /> },
+    { id: 'Integrations', label: 'Integrations', icon: <KeyIcon /> },
   ];
 
   const renderContent = () => {
@@ -126,6 +137,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ profile, onClose }) => {
                 <div className="space-y-2">
                     <ToggleSwitch label="Private Account" description="When your account is private, only people you approve can see your posts and follow you." checked={isPrivate} onChange={setIsPrivate} />
                     <ToggleSwitch label="Show Activity Status" description="Allow others to see when you were last active on SiloSphere." checked={showActivity} onChange={setShowActivity} />
+                </div>
+            </div>
+        );
+      case 'Integrations':
+        return (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-white">Integrations</h3>
+                <p className="text-gray-400">Manage connections to third-party services like the Gemini API.</p>
+                <div>
+                    <label htmlFor="gemini-api-key" className="block text-sm font-semibold mb-1 text-gray-300">Gemini API Key</label>
+                    <input id="gemini-api-key" type="password" placeholder="Enter your Gemini API key" value={localApiKey} onChange={(e) => setLocalApiKey(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" />
+                    <p className="text-xs text-gray-500 mt-2">Your key is stored securely in your browser's local storage and is never sent to our servers.</p>
+                </div>
+                <div className="flex justify-end pt-4">
+                    <button onClick={handleSaveApiKey} className="px-6 py-2 rounded-full font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">Save API Key</button>
                 </div>
             </div>
         );

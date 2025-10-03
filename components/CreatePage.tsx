@@ -185,30 +185,67 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
              return;
         }
 
-        const newPost = {
-            title,
-            creatorName: profile.name,
-            imageUrl: youtubeVideoId ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg` : videoPreviewUrl!,
-            duration: '0:00', // Placeholder, could be implemented with video metadata reader
-            description,
-            hashtags,
-            model: selectedModel,
-            prompt,
-            youtubeId: youtubeVideoId || null,
-            profileId: session.user.id,
-        };
+        try {
+            let videoUrl = null;
+            let imageUrl;
 
-        const { error } = await supabase.from('posts').insert(newPost);
-        
-        if (error) {
-            console.error("Could not save post to Supabase", error);
-            setSubmissionStatus({ message: `Error submitting post: ${error.message}`, type: 'error' });
-            setIsSubmitting(false);
-        } else {
+            if (youtubeVideoId) {
+                imageUrl = `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`;
+            } else if (uploadedFile) {
+                // Use a placeholder image for uploaded videos, as client-side thumbnail generation is complex.
+                imageUrl = 'https://i.ibb.co/b3my2V2/video-placeholder.png';
+                
+                const fileExt = uploadedFile.name.split('.').pop();
+                const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
+                
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('media') // Use a 'media' bucket for uploads
+                    .upload(fileName, uploadedFile);
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                const { data: urlData } = supabase.storage
+                    .from('media')
+                    .getPublicUrl(uploadData.path);
+                
+                videoUrl = urlData.publicUrl;
+            } else {
+                // This case should be caught by initial validation, but it's here as a safeguard.
+                throw new Error("No video source provided.");
+            }
+
+            const newPost = {
+                title,
+                creatorName: profile.name,
+                imageUrl,
+                duration: '0:00', // Placeholder
+                description,
+                hashtags,
+                model: selectedModel,
+                prompt,
+                youtubeId: youtubeVideoId || null,
+                videoUrl: videoUrl, // Save the URL of the uploaded video
+                profileId: session.user.id,
+            };
+
+            const { error: insertError } = await supabase.from('posts').insert(newPost);
+            
+            if (insertError) {
+                throw insertError;
+            }
+
             setSubmissionStatus({ message: 'Post successful! Redirecting...', type: 'success' });
             setTimeout(() => {
                 setActivePage('home');
             }, 2000);
+
+        } catch (error: any) {
+            console.error("Could not save post to Supabase", error);
+            setSubmissionStatus({ message: `Error submitting post: ${error.message}`, type: 'error' });
+        } finally {
+            setIsSubmitting(false);
         }
     };
     

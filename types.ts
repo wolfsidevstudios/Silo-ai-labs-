@@ -16,6 +16,7 @@ export interface Video {
   imageUrl: string;
   duration: string;
   youtubeId?: string;
+  videoUrl?: string;
   description?: string;
   hashtags?: string;
   model?: string;

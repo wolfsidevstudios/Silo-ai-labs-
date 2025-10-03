@@ -1,8 +1,9 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
+import { useApiKey } from '../contexts/ApiKeyContext';
 
 const SiloAiPage: React.FC = () => {
+    const { apiKey } = useApiKey();
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [shuffledImageUrl, setShuffledImageUrl] = useState<string | null>(null);
     const [aiGeneratedPixelArtUrl, setAiGeneratedPixelArtUrl] = useState<string | null>(null);
@@ -20,15 +21,16 @@ const SiloAiPage: React.FC = () => {
             setPromptError('Please enter an idea to expand.');
             return;
         }
+        if (!apiKey) {
+            setPromptError('Please set your Gemini API key in your profile settings to use this feature.');
+            return;
+        }
         setIsGeneratingPrompt(true);
         setPromptError('');
         setGeneratedPrompt('');
 
         try {
-            if (!process.env.API_KEY) {
-                throw new Error("The AI assistant is not configured. Please contact support.");
-            }
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey });
             
             const systemInstruction = "You are an expert prompt engineer for generative AI models. Your task is to take a user's simple idea and expand it into a detailed, paragraph-style prompt. The prompt should be rich in visual descriptions, including details about the subject, environment, lighting, camera angle, and overall mood or style. Do not add any conversational text or explanations, just output the final prompt.";
             
@@ -203,6 +205,11 @@ const SiloAiPage: React.FC = () => {
                 <h2 className="text-3xl font-bold mb-4 text-center text-gray-200">AI Prompt Assistant</h2>
                 <div className="max-w-3xl mx-auto">
                     <div className="relative p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm text-center space-y-4">
+                        {!apiKey && (
+                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-300 text-sm text-left">
+                                <strong>API Key Required:</strong> Please go to your profile settings and add your Gemini API key in the "Integrations" tab to use this feature.
+                            </div>
+                        )}
                         <p className="text-gray-400">Enter a simple idea, and our AI assistant will expand it into a detailed prompt ready for any image or video generator.</p>
                         <textarea
                             value={idea}
@@ -210,11 +217,11 @@ const SiloAiPage: React.FC = () => {
                             placeholder="e.g., A cat wearing a wizard hat"
                             className="w-full h-24 p-4 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-500 resize-none"
                             aria-label="Prompt idea input"
-                            disabled={isGeneratingPrompt}
+                            disabled={isGeneratingPrompt || !apiKey}
                         />
                         <button
                             onClick={handleGeneratePrompt}
-                            disabled={isGeneratingPrompt}
+                            disabled={isGeneratingPrompt || !apiKey}
                             className="h-12 px-8 bg-white rounded-full flex items-center justify-center text-black font-semibold disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto mx-auto shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
                         >
                             {isGeneratingPrompt ? 'Generating...' : '✨ Generate Prompt'}
