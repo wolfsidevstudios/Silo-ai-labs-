@@ -1,12 +1,53 @@
+
 import React, { useState, useCallback, useRef } from 'react';
+import { GoogleGenAI } from "@google/genai";
 
 const SiloAiPage: React.FC = () => {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [shuffledImageUrl, setShuffledImageUrl] = useState<string | null>(null);
     const [aiGeneratedPixelArtUrl, setAiGeneratedPixelArtUrl] = useState<string | null>(null);
     const [isShuffling, setIsShuffling] = useState(false);
-    const [isAiGenerating, setIsAiGenerating] = useState(false);
+    const [isGeneratingPixelArt, setIsGeneratingPixelArt] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const [idea, setIdea] = useState('');
+    const [generatedPrompt, setGeneratedPrompt] = useState('');
+    const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+    const [promptError, setPromptError] = useState('');
+
+    const handleGeneratePrompt = async () => {
+        if (!idea.trim()) {
+            setPromptError('Please enter an idea to expand.');
+            return;
+        }
+        setIsGeneratingPrompt(true);
+        setPromptError('');
+        setGeneratedPrompt('');
+
+        try {
+            if (!process.env.API_KEY) {
+                throw new Error("The AI assistant is not configured. Please contact support.");
+            }
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            
+            const systemInstruction = "You are an expert prompt engineer for generative AI models. Your task is to take a user's simple idea and expand it into a detailed, paragraph-style prompt. The prompt should be rich in visual descriptions, including details about the subject, environment, lighting, camera angle, and overall mood or style. Do not add any conversational text or explanations, just output the final prompt.";
+            
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: `Idea: "${idea}"`,
+                config: {
+                    systemInstruction: systemInstruction,
+                }
+            });
+
+            setGeneratedPrompt(response.text);
+        } catch (err: any) {
+            console.error("Error generating prompt:", err);
+            setPromptError(err.message || 'An unexpected error occurred. Please try again.');
+        } finally {
+            setIsGeneratingPrompt(false);
+        }
+    };
 
     const shufflePixels = useCallback((imageUrl: string) => {
         if (!canvasRef.current) return;
@@ -82,20 +123,20 @@ const SiloAiPage: React.FC = () => {
         }
     }
 
-    const handleAiGenerate = () => {
+    const handleAiGeneratePixelArt = () => {
         if (!shuffledImageUrl || !canvasRef.current) {
             alert("No shuffled image to generate from.");
             return;
         }
 
-        setIsAiGenerating(true);
+        setIsGeneratingPixelArt(true);
         setAiGeneratedPixelArtUrl(null);
 
         setTimeout(() => {
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-                setIsAiGenerating(false);
+                setIsGeneratingPixelArt(false);
                 return;
             }
 
@@ -110,10 +151,10 @@ const SiloAiPage: React.FC = () => {
                 ctx.filter = 'none';
 
                 setAiGeneratedPixelArtUrl(canvas.toDataURL());
-                setIsAiGenerating(false);
+                setIsGeneratingPixelArt(false);
             };
             img.onerror = () => {
-                setIsAiGenerating(false);
+                setIsGeneratingPixelArt(false);
                 alert("Failed to process the shuffled image.");
             };
         }, 2500);
@@ -156,6 +197,41 @@ const SiloAiPage: React.FC = () => {
                     </div>
                 </div>
             </section>
+
+             {/* AI Prompt Assistant */}
+            <section>
+                <h2 className="text-3xl font-bold mb-4 text-center text-gray-200">AI Prompt Assistant</h2>
+                <div className="max-w-3xl mx-auto">
+                    <div className="relative p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm text-center space-y-4">
+                        <p className="text-gray-400">Enter a simple idea, and our AI assistant will expand it into a detailed prompt ready for any image or video generator.</p>
+                        <textarea
+                            value={idea}
+                            onChange={(e) => setIdea(e.target.value)}
+                            placeholder="e.g., A cat wearing a wizard hat"
+                            className="w-full h-24 p-4 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-500 resize-none"
+                            aria-label="Prompt idea input"
+                            disabled={isGeneratingPrompt}
+                        />
+                        <button
+                            onClick={handleGeneratePrompt}
+                            disabled={isGeneratingPrompt}
+                            className="h-12 px-8 bg-white rounded-full flex items-center justify-center text-black font-semibold disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto mx-auto shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
+                        >
+                            {isGeneratingPrompt ? 'Generating...' : '✨ Generate Prompt'}
+                        </button>
+                        {promptError && <p className="text-red-400 text-sm">{promptError}</p>}
+                        {generatedPrompt && (
+                            <div className="text-left p-4 bg-black/30 rounded-lg border border-white/10 mt-4 animate-fade-in space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-gray-200">Generated Prompt:</h4>
+                                    <button onClick={() => navigator.clipboard.writeText(generatedPrompt)} className="text-xs px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-gray-300">Copy</button>
+                                </div>
+                                <p className="text-gray-300 whitespace-pre-wrap font-mono text-sm">{generatedPrompt}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
             
             <div className="border-b border-white/10 max-w-4xl mx-auto"></div>
 
@@ -170,7 +246,7 @@ const SiloAiPage: React.FC = () => {
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                         </label>
                         {uploadedImage && (
-                            <button onClick={handleReshuffle} disabled={isShuffling || isAiGenerating} className="px-8 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50">
+                            <button onClick={handleReshuffle} disabled={isShuffling || isGeneratingPixelArt} className="px-8 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50">
                                 {isShuffling ? 'Shuffling...' : 'Re-Shuffle'}
                             </button>
                         )}
@@ -190,14 +266,14 @@ const SiloAiPage: React.FC = () => {
                                 <h3 className="font-semibold text-gray-300">Shuffled</h3>
                                 {shuffledImageUrl && <img src={shuffledImageUrl} alt="Shuffled" className="rounded-xl w-full aspect-square object-cover" />}
                                 {shuffledImageUrl && (
-                                    <button onClick={handleAiGenerate} disabled={isAiGenerating} className="px-8 py-3 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-all duration-200 ease-in-out disabled:opacity-50 w-full shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform hover:-translate-y-px active:translate-y-px active:shadow-inner">
-                                        {isAiGenerating ? 'Generating...' : '✨ Generate AI Image'}
+                                    <button onClick={handleAiGeneratePixelArt} disabled={isGeneratingPixelArt} className="px-8 py-3 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-all duration-200 ease-in-out disabled:opacity-50 w-full shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform hover:-translate-y-px active:translate-y-px active:shadow-inner">
+                                        {isGeneratingPixelArt ? 'Generating...' : '✨ Generate AI Image'}
                                     </button>
                                 )}
                             </div>
                              <div className="text-center">
                                 <h3 className="font-semibold mb-2 text-gray-300">AI Generated</h3>
-                                {isAiGenerating && (
+                                {isGeneratingPixelArt && (
                                     <div className="w-full aspect-square bg-white/5 rounded-xl flex items-center justify-center">
                                         <div className="text-gray-400 animate-pulse">Turning pixels into art...</div>
                                     </div>
