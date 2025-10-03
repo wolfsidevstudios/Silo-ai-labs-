@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ONBOARDING_AVATARS } from '../constants';
 import type { UserProfile } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface ProfileOnboardingProps {
   onComplete: (profile: UserProfile) => void;
@@ -16,15 +17,27 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
   const [avatar, setAvatar] = useState('');
   const [bio, setBio] = useState('Welcome to my SiloSphere!');
 
-  const handleFinish = () => {
-    const finalProfile: UserProfile = {
+  const handleFinish = async () => {
+    const profileToInsert = {
       name: name,
       username: `@${username}`,
       avatar: avatar,
       bio: bio,
       stats: { posts: 0, followers: '0', following: '0' },
     };
-    onComplete(finalProfile);
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert(profileToInsert)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating profile:', error);
+      alert('Could not create profile. The username might already be taken.');
+    } else {
+      onComplete(data as UserProfile);
+    }
   };
 
   const handleSkipAvatar = () => {
@@ -61,7 +74,7 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
             <button
               onClick={() => setStep('avatar')}
               disabled={!name || !username}
-              className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+              className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
             >
               Next
             </button>
@@ -94,7 +107,7 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
                     <button
                       onClick={() => setStep('preview')}
                       disabled={!avatar}
-                      className="w-full sm:w-auto px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                      className="w-full sm:w-auto px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
                     >
                       Next
                     </button>
@@ -133,7 +146,7 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
              </div>
              <button
               onClick={handleFinish}
-              className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black hover:opacity-90 transition-opacity"
+              className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
             >
               Start Using SiloSphere
             </button>

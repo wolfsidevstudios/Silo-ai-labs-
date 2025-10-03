@@ -161,7 +161,7 @@ const SiloAiPage: React.FC = () => {
                         <button
                             onClick={handleGenerate}
                             disabled={isGenerating || !prompt}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-8 bg-white rounded-full flex items-center justify-center text-black font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-8 bg-white rounded-full flex items-center justify-center text-black font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
                         >
                             {isGenerating ? 'Generating...' : 'Generate'}
                         </button>
@@ -176,7 +176,7 @@ const SiloAiPage: React.FC = () => {
                                <button className="px-6 py-2 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
                                    Download
                                </button>
-                                <button className="px-6 py-2 rounded-full text-sm font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                                <button className="px-6 py-2 rounded-full text-sm font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">
                                     Publish
                                 </button>
                             </div>
@@ -193,7 +193,7 @@ const SiloAiPage: React.FC = () => {
                 <div className="max-w-6xl mx-auto flex flex-col items-center gap-8">
                      <p className="text-gray-400 text-center">Upload an image to deconstruct it, then generate a new piece of abstract art from its pixels.</p>
                     <div className="flex gap-4">
-                        <label className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-black cursor-pointer hover:opacity-90 transition-opacity">
+                        <label className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-black cursor-pointer shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">
                             {uploadedImage ? 'Upload Another' : 'Upload Image'}
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                         </label>
@@ -218,7 +218,7 @@ const SiloAiPage: React.FC = () => {
                                 <h3 className="font-semibold text-gray-300">Shuffled</h3>
                                 {shuffledImageUrl && <img src={shuffledImageUrl} alt="Shuffled" className="rounded-xl w-full aspect-square object-cover" />}
                                 {shuffledImageUrl && (
-                                    <button onClick={handleAiGenerate} disabled={isAiGenerating} className="px-8 py-3 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-50 w-full">
+                                    <button onClick={handleAiGenerate} disabled={isAiGenerating} className="px-8 py-3 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-all duration-200 ease-in-out disabled:opacity-50 w-full shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform hover:-translate-y-px active:translate-y-px active:shadow-inner">
                                         {isAiGenerating ? 'Generating...' : '✨ Generate AI Image'}
                                     </button>
                                 )}
@@ -237,7 +237,7 @@ const SiloAiPage: React.FC = () => {
                                         <button className="px-6 py-2 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
                                           Download
                                         </button>
-                                        <button className="px-6 py-2 rounded-full text-sm font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                                        <button className="px-6 py-2 rounded-full text-sm font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">
                                           Publish
                                         </button>
                                     </div>

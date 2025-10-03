@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { USER_PROFILE_DATA, USER_CREATIONS } from '../constants';
 import type { Creation, UserProfile } from '../types';
 import ProfileOnboarding from './ProfileOnboarding';
+import { supabase } from '../lib/supabase';
 
 const Stat: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
     <div className="text-center">
@@ -34,15 +35,39 @@ const ProfilePage: React.FC = () => {
     useEffect(() => {
         const onboardingComplete = localStorage.getItem('siloSphereOnboardingComplete') === 'true';
         if (onboardingComplete) {
-            const savedProfile = localStorage.getItem('siloSphereUserProfile');
-            setProfile(savedProfile ? JSON.parse(savedProfile) : USER_PROFILE_DATA); // Fallback to default
+            const fetchProfile = async () => {
+                const profileId = localStorage.getItem('siloSphereUserProfileId');
+                if (profileId) {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', parseInt(profileId, 10))
+                        .single();
+
+                    if (error) {
+                        console.error('Error fetching profile:', error);
+                        // Profile ID exists but fetch failed, force re-onboarding
+                        localStorage.removeItem('siloSphereOnboardingComplete');
+                        localStorage.removeItem('siloSphereUserProfileId');
+                        setShowOnboarding(true);
+                    } else {
+                        setProfile(data);
+                    }
+                } else {
+                    // Onboarding complete but no ID, this state is inconsistent. Force re-onboarding.
+                    setShowOnboarding(true);
+                }
+            };
+            fetchProfile();
         } else {
             setShowOnboarding(true);
         }
     }, []);
 
     const handleOnboardingComplete = (newProfile: UserProfile) => {
-        localStorage.setItem('siloSphereUserProfile', JSON.stringify(newProfile));
+        if (newProfile.id) {
+            localStorage.setItem('siloSphereUserProfileId', newProfile.id.toString());
+        }
         localStorage.setItem('siloSphereOnboardingComplete', 'true');
         setProfile(newProfile);
         setShowOnboarding(false);

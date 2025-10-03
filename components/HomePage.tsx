@@ -5,6 +5,7 @@ import VideoCard from './VideoCard';
 import ShortCard from './ShortCard';
 import YouTubeVideoCard from './YouTubeVideoCard';
 import type { Video } from '../types';
+import { supabase } from '../lib/supabase';
 
 const VideoSection: React.FC<{ title: string; videos: Video[] }> = ({ title, videos }) => (
   <section className="mb-12">
@@ -22,17 +23,38 @@ const HomePage: React.FC = () => {
   const [youtubeVideos, setYoutubeVideos] = useState<Video[]>([]);
 
   useEffect(() => {
-    try {
-      const storedPosts = JSON.parse(localStorage.getItem('siloSpherePosts') || '[]') as Video[];
-      const ytVideos = storedPosts.filter(post => post.youtubeId);
-      const uploadedVideos = storedPosts.filter(post => !post.youtubeId);
-      
-      setYoutubeVideos(ytVideos);
-      setAllRecentVideos([...uploadedVideos, ...RECENT_VIDEOS]);
-    } catch (error) {
-      console.error("Failed to parse posts from local storage", error);
-      setAllRecentVideos(RECENT_VIDEOS);
-    }
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('createdAt', { ascending: false });
+
+      if (error) {
+        console.error("Failed to fetch posts from Supabase", error);
+        setAllRecentVideos(RECENT_VIDEOS); // Fallback to constant data on error
+      } else {
+        const mappedVideos: Video[] = data.map(post => ({
+          id: post.id,
+          title: post.title,
+          creator: post.creatorName,
+          imageUrl: post.imageUrl,
+          duration: post.duration,
+          youtubeId: post.youtubeId,
+          description: post.description,
+          hashtags: post.hashtags,
+          model: post.model,
+          prompt: post.prompt,
+        }));
+        
+        const ytVideos = mappedVideos.filter(post => post.youtubeId);
+        const uploadedVideos = mappedVideos.filter(post => !post.youtubeId);
+        
+        setYoutubeVideos(ytVideos);
+        // Prepend fetched videos to any default/fallback videos
+        setAllRecentVideos([...uploadedVideos, ...RECENT_VIDEOS]);
+      }
+    };
+    fetchPosts();
   }, []);
 
 

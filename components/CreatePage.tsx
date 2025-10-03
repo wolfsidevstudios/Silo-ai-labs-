@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { AI_MODELS, USER_PROFILE_DATA } from '../constants';
-import type { Page } from '../types';
+import type { Page, Video } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface ToolCardProps {
     icon: React.ReactNode;
@@ -110,7 +111,7 @@ const YouTubeUploadArea: React.FC<{ onLinkSubmit: (videoId: string) => void }> =
                     placeholder="https://www.youtube.com/watch?v=..."
                     className="flex-grow p-4 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white"
                 />
-                <button onClick={handleSubmit} className="px-6 py-3 rounded-lg font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                <button onClick={handleSubmit} className="px-6 py-3 rounded-lg font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">
                     Process
                 </button>
             </div>
@@ -162,34 +163,51 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
         setHashtags('');
     };
 
-    const handlePost = () => {
+    const handlePost = async () => {
         if (!title || (!uploadedFile && !youtubeVideoId) || !selectedModel) {
             alert("Please fill out all required fields.");
             return;
         }
 
+        const profileId = localStorage.getItem('siloSphereUserProfileId');
+        if (!profileId) {
+            alert('You must create a profile before posting. Please go to the Profile page.');
+            setActivePage('profile');
+            return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', profileId)
+            .single();
+
+        if (profileError || !profileData) {
+            alert('Could not find your profile. Please try again.');
+            return;
+        }
+
         const newPost = {
-            id: Date.now(),
             title,
-            creator: USER_PROFILE_DATA.name,
+            creatorName: profileData.name,
             imageUrl: youtubeVideoId ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg` : videoPreviewUrl!,
-            duration: '0:00',
+            duration: '0:00', // Placeholder, could be implemented with video metadata reader
             description,
             hashtags,
             model: selectedModel,
             prompt,
-            youtubeId: youtubeVideoId || undefined,
+            youtubeId: youtubeVideoId || null,
+            profileId: parseInt(profileId, 10),
         };
 
-        try {
-            const storedPosts = JSON.parse(localStorage.getItem('siloSpherePosts') || '[]');
-            const updatedPosts = [newPost, ...storedPosts];
-            localStorage.setItem('siloSpherePosts', JSON.stringify(updatedPosts));
+        const { error } = await supabase.from('posts').insert(newPost);
+        
+        if (error) {
+            console.error("Could not save post to Supabase", error);
+            alert("There was an error saving your post.");
+        } else {
             alert('Post successful!');
             setActivePage('home');
-        } catch (error) {
-            console.error("Could not save post to local storage", error);
-            alert("There was an error saving your post.");
         }
     };
     
@@ -274,7 +292,7 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
                                 <button 
                                     onClick={() => setIsPromptSubmitted(true)} 
                                     disabled={!prompt}
-                                    className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                                    className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
                                 >
                                     Continue
                                 </button>
@@ -314,7 +332,7 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
                        <button onClick={resetUpload} className="px-6 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
                            Cancel
                        </button>
-                        <button onClick={handlePost} className="px-10 py-3 rounded-full text-sm font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                        <button onClick={handlePost} className="px-10 py-3 rounded-full text-sm font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">
                             Post
                         </button>
                     </div>

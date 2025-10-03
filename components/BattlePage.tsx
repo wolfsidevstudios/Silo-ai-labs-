@@ -25,7 +25,7 @@ const ContestantCard: React.FC<ContestantCardProps> = ({ contestant, onVote }) =
         </p>
       </div>
        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="px-6 py-3 border-2 border-white rounded-full text-white text-xl font-bold backdrop-blur-sm">
+            <div className="px-6 py-3 border-2 border-white rounded-full text-white text-xl font-bold backdrop-blur-sm shadow-lg shadow-black/50">
                 VOTE
             </div>
         </div>

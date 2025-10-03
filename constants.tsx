@@ -39,7 +39,7 @@ const ExploreIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
   </svg>
 );
 
-const CreateIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
+export const CreateIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
   </svg>
@@ -166,4 +166,11 @@ export const ONBOARDING_AVATARS: string[] = [
     'https://i.ibb.co/Df3CWc3Z/IMG-3957.png',
     'https://i.ibb.co/G4Gx2X83/IMG-3955.png',
     'https://i.ibb.co/9HbjgPHS/IMG-3956.png',
+];
+
+export const MOBILE_NAVIGATION_ITEMS: NavItem[] = [
+  { id: 'home', label: 'Home', icon: HomeIcon },
+  { id: 'clips', label: 'For You', icon: ClipsIcon },
+  { id: 'explore', label: 'Explore', icon: ExploreIcon },
+  { id: 'profile', label: 'Profile', icon: ProfileIcon },
 ];
