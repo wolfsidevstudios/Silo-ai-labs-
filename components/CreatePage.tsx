@@ -80,15 +80,56 @@ const UploadArea: React.FC<{ onFileSelect: (file: File) => void }> = ({ onFileSe
     );
 };
 
+const YouTubeUploadArea: React.FC<{ onLinkSubmit: (videoId: string) => void }> = ({ onLinkSubmit }) => {
+    const [link, setLink] = useState('');
+
+    const getYoutubeVideoId = (url: string): string | null => {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    const handleSubmit = () => {
+        const videoId = getYoutubeVideoId(link);
+        if (videoId) {
+            onLinkSubmit(videoId);
+        } else {
+            alert('Invalid YouTube link. Please enter a valid video URL.');
+        }
+    }
+
+    return (
+        <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-4">
+            <h3 className="text-xl font-bold text-white">Embed a YouTube Video</h3>
+            <p className="text-gray-400 mt-1">Paste the video link below to embed it.</p>
+            <div className="w-full flex gap-2">
+                <input
+                    type="text"
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="flex-grow p-4 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white"
+                />
+                <button onClick={handleSubmit} className="px-6 py-3 rounded-lg font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                    Process
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
 interface CreatePageProps {
   setActivePage: (page: Page) => void;
 }
 
 const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
     const [mode, setMode] = useState<'create' | 'upload'>('create');
+    const [uploadType, setUploadType] = useState<'file' | 'youtube'>('file');
     
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+    const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
     const [selectedModel, setSelectedModel] = useState<string | null>(null);
     const [prompt, setPrompt] = useState('');
     const [isPromptSubmitted, setIsPromptSubmitted] = useState(false);
@@ -105,9 +146,14 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
         reader.readAsDataURL(file);
     };
     
+    const handleLinkSubmit = (videoId: string) => {
+        setYoutubeVideoId(videoId);
+    };
+
     const resetUpload = () => {
         setUploadedFile(null);
         setVideoPreviewUrl(null);
+        setYoutubeVideoId(null);
         setSelectedModel(null);
         setPrompt('');
         setIsPromptSubmitted(false);
@@ -117,7 +163,7 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
     };
 
     const handlePost = () => {
-        if (!title || !uploadedFile || !videoPreviewUrl || !selectedModel) {
+        if (!title || (!uploadedFile && !youtubeVideoId) || !selectedModel) {
             alert("Please fill out all required fields.");
             return;
         }
@@ -126,12 +172,13 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
             id: Date.now(),
             title,
             creator: USER_PROFILE_DATA.name,
-            imageUrl: videoPreviewUrl,
-            duration: '0:00', // Placeholder, could be implemented with a video metadata library
+            imageUrl: youtubeVideoId ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg` : videoPreviewUrl!,
+            duration: '0:00',
             description,
             hashtags,
             model: selectedModel,
             prompt,
+            youtubeId: youtubeVideoId || undefined,
         };
 
         try {
@@ -145,16 +192,56 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
             alert("There was an error saving your post.");
         }
     };
+    
+    const renderVideoPreview = () => {
+        if (youtubeVideoId) {
+            return <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}`} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full max-w-sm aspect-[9/16] rounded-2xl object-cover bg-black/50 border border-white/10" />;
+        }
+        if (videoPreviewUrl) {
+            return <video src={videoPreviewUrl} className="w-full max-w-sm aspect-[9/16] rounded-2xl object-cover bg-black/50 border border-white/10" controls autoPlay loop muted />;
+        }
+        return null;
+    }
+
+    const renderFinalPreview = () => {
+       if (youtubeVideoId) {
+            return <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}`} title="YouTube video player" frameBorder="0" allowFullScreen className="w-full aspect-video rounded-xl object-cover bg-black/50" />;
+        }
+        if (videoPreviewUrl) {
+            return <video src={videoPreviewUrl} className="w-full aspect-[9/16] rounded-xl object-cover bg-black/50" loop muted autoPlay />;
+        }
+        return null;
+    }
 
     const renderUploadContent = () => {
-        if (!uploadedFile || !videoPreviewUrl) {
-            return <UploadArea onFileSelect={handleFileSelect} />;
+        if (!uploadedFile && !youtubeVideoId) {
+             return (
+                <div>
+                     <div className="flex justify-center mb-8">
+                        <div className="bg-white/5 p-1 rounded-full flex items-center gap-2 border border-white/10">
+                            <button 
+                                onClick={() => setUploadType('file')}
+                                className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${uploadType === 'file' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                File Upload
+                            </button>
+                            <button 
+                                onClick={() => setUploadType('youtube')}
+                                className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${uploadType === 'youtube' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                YouTube Link
+                            </button>
+                        </div>
+                    </div>
+                    {uploadType === 'file' ? <UploadArea onFileSelect={handleFileSelect} /> : <YouTubeUploadArea onLinkSubmit={handleLinkSubmit} />}
+                </div>
+            );
         }
 
         if (!isPromptSubmitted) {
             return (
                 <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-8 animate-fade-in">
-                    <video src={videoPreviewUrl} className="w-full max-w-sm aspect-[9/16] rounded-2xl object-cover bg-black/50 border border-white/10" controls autoPlay loop muted />
+                    {renderVideoPreview()}
                     <div>
                         <h3 className="text-xl font-bold text-center mb-4">Select the AI model you used</h3>
                         <div className="flex overflow-x-auto space-x-3 pb-2 -mx-4 px-4 no-scrollbar">
@@ -234,13 +321,15 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
                 </div>
                 <div className="flex flex-col items-center lg:items-start pt-12">
                      <div className="relative w-48 group">
-                        <video src={videoPreviewUrl} className="w-full aspect-[9/16] rounded-xl object-cover bg-black/50" loop muted autoPlay />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex items-center justify-center">
-                           <button className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30 hover:bg-black/80">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
-                                Edit Thumbnail
-                           </button>
-                        </div>
+                         {renderFinalPreview()}
+                         {videoPreviewUrl && (
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex items-center justify-center">
+                               <button className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30 hover:bg-black/80">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                                    Edit Thumbnail
+                               </button>
+                            </div>
+                         )}
                     </div>
                 </div>
             </div>

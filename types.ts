@@ -14,6 +14,11 @@ export interface Video {
   creator: string;
   imageUrl: string;
   duration: string;
+  youtubeId?: string;
+  description?: string;
+  hashtags?: string;
+  model?: string;
+  prompt?: string;
 }
 
 export interface Inspiration {

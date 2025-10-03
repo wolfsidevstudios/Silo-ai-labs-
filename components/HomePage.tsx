@@ -3,6 +3,7 @@ import { DAILY_INSPIRATION, TOP_VIDEOS, RECENT_VIDEOS, TRENDING_SHORTS } from '.
 import InspirationCard from './InspirationCard';
 import VideoCard from './VideoCard';
 import ShortCard from './ShortCard';
+import YouTubeVideoCard from './YouTubeVideoCard';
 import type { Video } from '../types';
 
 const VideoSection: React.FC<{ title: string; videos: Video[] }> = ({ title, videos }) => (
@@ -18,11 +19,16 @@ const VideoSection: React.FC<{ title: string; videos: Video[] }> = ({ title, vid
 
 const HomePage: React.FC = () => {
   const [allRecentVideos, setAllRecentVideos] = useState<Video[]>(RECENT_VIDEOS);
+  const [youtubeVideos, setYoutubeVideos] = useState<Video[]>([]);
 
   useEffect(() => {
     try {
       const storedPosts = JSON.parse(localStorage.getItem('siloSpherePosts') || '[]') as Video[];
-      setAllRecentVideos([...storedPosts, ...RECENT_VIDEOS]);
+      const ytVideos = storedPosts.filter(post => post.youtubeId);
+      const uploadedVideos = storedPosts.filter(post => !post.youtubeId);
+      
+      setYoutubeVideos(ytVideos);
+      setAllRecentVideos([...uploadedVideos, ...RECENT_VIDEOS]);
     } catch (error) {
       console.error("Failed to parse posts from local storage", error);
       setAllRecentVideos(RECENT_VIDEOS);
@@ -41,6 +47,17 @@ const HomePage: React.FC = () => {
         <h2 className="text-3xl font-bold mb-6 text-gray-200">Daily AI Inspiration</h2>
         <InspirationCard inspiration={DAILY_INSPIRATION} />
       </section>
+
+      {youtubeVideos.length > 0 && (
+         <section className="mb-12">
+            <h2 className="text-3xl font-bold mb-6 text-gray-200">YouTube AI Videos</h2>
+            <div className="flex overflow-x-auto space-x-6 pb-4 -mx-1 px-1">
+              {youtubeVideos.map((video) => (
+                <YouTubeVideoCard key={video.id} video={video} />
+              ))}
+            </div>
+          </section>
+      )}
 
       <VideoSection title="Top Videos" videos={TOP_VIDEOS} />
 
