@@ -34,22 +34,26 @@ const ProfileOnboarding: React.FC = () => {
     };
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update(profileToUpdate)
         .eq('id', session.user.id)
-        .select()
-        .single(); // This will error if no row is updated, providing feedback
+        .select(); // Remove .single() to fix coercion error
 
       if (error) {
         throw error;
       }
       
+      // Manually check if any row was updated, as .single() was removed
+      if (!data || data.length === 0) {
+        throw new Error("Could not find a profile to update. Please contact support.");
+      }
+
       await refreshProfile();
       // On success, the component will unmount as useAuth provides the new profile.
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      if (error?.code === '23505') {
+      if (error?.code === '23505') { // Handle unique constraint violation for username
           alert('This username is already taken. Please choose another one.');
       } else {
           alert(`Could not update your profile. Please try again. Details: ${error.message}`);

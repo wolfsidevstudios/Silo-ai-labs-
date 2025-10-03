@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Page } from './types';
 import FloatingNav from './components/FloatingNav';
@@ -34,6 +35,16 @@ const App: React.FC = () => {
     const { session, profile, loading } = useAuth();
     const [activePage, setActivePage] = useState<Page>('home');
     const isMobile = useIsMobile();
+    const [isSplashVisible, setIsSplashVisible] = useState(true);
+
+    useEffect(() => {
+      // Set a timer to hide the splash screen after 10 seconds
+      const splashTimer = setTimeout(() => {
+        setIsSplashVisible(false);
+      }, 10000);
+  
+      return () => clearTimeout(splashTimer);
+    }, []);
   
     // Determine the application's state based on auth context
     const needsAuth = !loading && !session;
@@ -55,7 +66,7 @@ const App: React.FC = () => {
     };
 
     // Render based on the state
-    if (loading) {
+    if (loading || isSplashVisible) {
         return <SplashScreen />;
     }
 
