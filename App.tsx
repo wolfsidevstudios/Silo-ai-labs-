@@ -8,6 +8,7 @@ import ExplorePage from './components/ExplorePage';
 import CreatePage from './components/CreatePage';
 import ProfilePage from './components/ProfilePage';
 import BattlePage from './components/BattlePage';
+import SiloAiPage from './components/SiloAiPage';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('home');
@@ -20,6 +21,8 @@ const App: React.FC = () => {
         return <ClipsPage />;
       case 'battle':
         return <BattlePage />;
+      case 'silo-ai':
+        return <SiloAiPage />;
       case 'inspiration':
         return <InspirationPage />;
       case 'explore':
@@ -36,7 +39,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <FloatingNav activePage={activePage} setActivePage={setActivePage} />
-      <main className="pl-24 pr-8 py-8">
+      <main className="pl-32 pr-8 pt-12 pb-8">
         {renderContent()}
       </main>
     </div>

@@ -13,6 +13,13 @@ const ClipsIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
     </svg>
 );
 
+const SiloAiIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25c.828 0 1.5.672 1.5 1.5v1.235c.421.13.82.312 1.178.536m-3.356 0A12.015 12.015 0 0 0 12 4.5v-1.235c-.421.13-.82.312-1.178.536m3.356 0a3.75 3.75 0 0 1 2.23 6.643c.12.339.227.688.32 1.045m-4.55 0a3.75 3.75 0 0 0-2.23 6.643c-.12.339-.227.688-.32 1.045m4.55 0c.093.357.199.706.32 1.045m0 0a3.75 3.75 0 0 1-4.137 2.285c-.421-.13-.82-.312-1.178-.536m4.137-2.285a3.75 3.75 0 0 0 4.137 2.285c.421-.13.82-.312 1.178-.536m-4.137-2.285c.328 0 .644-.047.95-.135m-1.9 0c-.306.088-.622.135-.95.135m0 0a3.75 3.75 0 0 1-2.23-6.643c-.12-.339-.227-.688-.32-1.045m4.55 0a3.75 3.75 0 0 0 2.23-6.643c.12-.339.227-.688.32-1.045m-4.55 0c-.093-.357-.199-.706-.32-1.045m0 0a3.75 3.75 0 0 1 4.137-2.285c.421.13.82.312 1.178.536m-4.137 2.285a3.75 3.75 0 0 0-4.137-2.285c-.421.13-.82.312-1.178.536m0 0a3.75 3.75 0 0 1-2.23 6.643c-.12.339-.227.688-.32 1.045m2.55 0a3.75 3.75 0 0 0-2.23 6.643c.12.339.227.688.32 1.045m2.55 0c.093.357.199.706.32 1.045" />
+    </svg>
+);
+
+
 const BattleIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12.012 2.25c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Zm0 13.5c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Z" />
@@ -48,6 +55,7 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   { id: 'home', label: 'Home', icon: HomeIcon },
   { id: 'clips', label: 'Clips', icon: ClipsIcon },
   { id: 'battle', label: 'Battle', icon: BattleIcon },
+  { id: 'silo-ai', label: 'Silo AI', icon: SiloAiIcon },
   { id: 'inspiration', label: 'Inspiration', icon: InspirationIcon },
   { id: 'explore', label: 'Explore', icon: ExploreIcon },
   { id: 'create', label: 'Create', icon: CreateIcon },

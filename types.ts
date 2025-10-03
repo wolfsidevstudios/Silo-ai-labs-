@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type Page = 'home' | 'explore' | 'create' | 'profile' | 'clips' | 'inspiration' | 'battle';
+export type Page = 'home' | 'explore' | 'create' | 'profile' | 'clips' | 'inspiration' | 'battle' | 'silo-ai';
 
 export interface NavItem {
   id: Page;
