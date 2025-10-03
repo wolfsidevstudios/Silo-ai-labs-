@@ -1,19 +1,47 @@
-import React from 'react';
-import { INSPIRATIONS_GRID, EXPLORE_TAGS } from '../constants';
-import type { Inspiration } from '../types';
+import React, { useState, useEffect } from 'react';
+import { EXPLORE_TAGS } from '../constants';
+import { supabase } from '../lib/supabase';
+import type { Post } from '../types';
 
-const ExploreGridItem: React.FC<{ item: Inspiration }> = ({ item }) => (
+const ExploreGridItem: React.FC<{ item: Post }> = ({ item }) => (
     <div className="relative overflow-hidden rounded-lg group mb-4 break-inside-avoid">
         <img
             src={item.imageUrl}
             alt={item.title}
             className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="text-white">
+                <p className="font-bold">{item.title}</p>
+                <p className="text-xs text-gray-300">by {item.creator}</p>
+            </div>
+        </div>
     </div>
 );
 
 const ExplorePage: React.FC = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+
+     useEffect(() => {
+        const fetchExplorePosts = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('posts')
+                .select('*')
+                .eq('aspectRatio', '16:9')
+                .order('createdAt', { ascending: false });
+            
+            if (error) {
+                console.error("Error fetching explore posts", error);
+            } else {
+                setPosts(data as Post[]);
+            }
+            setLoading(false);
+        };
+        fetchExplorePosts();
+    }, []);
+
     return (
         <div className="animate-fade-in">
             <header className="mb-8 sticky top-4 z-10">
@@ -38,14 +66,20 @@ const ExplorePage: React.FC = () => {
                 </div>
             </header>
             
-            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-                {INSPIRATIONS_GRID.map(item => (
-                    <ExploreGridItem key={item.id} item={item} />
-                ))}
-                 {[...INSPIRATIONS_GRID].reverse().map(item => (
-                    <ExploreGridItem key={item.id + 'rev'} item={{...item, imageUrl: item.imageUrl.replace('grid', 'explore')}} />
-                ))}
-            </div>
+            {loading ? (
+                <div className="text-center text-gray-400">Loading content...</div>
+            ) : posts.length > 0 ? (
+                <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+                    {posts.map(item => (
+                        <ExploreGridItem key={item.id} item={item} />
+                    ))}
+                </div>
+            ) : (
+                 <div className="text-center py-16 text-gray-500">
+                    <h3 className="text-2xl font-bold">Nothing to Explore Yet</h3>
+                    <p>Landscape images and videos will appear here.</p>
+                 </div>
+            )}
         </div>
     );
 };

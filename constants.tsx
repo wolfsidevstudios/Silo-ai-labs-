@@ -1,5 +1,6 @@
 import React from 'react';
-import type { NavItem, Video, Inspiration, Clip, UserProfile, Creation, BattleItem } from './types';
+// FIX: Added BattleItem to type imports
+import type { NavItem, UserProfile, BattleItem } from './types';
 
 const HomeIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -22,7 +23,7 @@ const SiloAiIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
 
 const BattleIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12.012 2.25c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Zm0 13.5c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12.012 2.25c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Zm0 13.5c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989.073 1.488-.073Z" />
     </svg>
 );
 
@@ -62,23 +63,6 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   { id: 'profile', label: 'Profile', icon: ProfileIcon },
 ];
 
-export const DAILY_INSPIRATION: Inspiration = {
-  id: 1,
-  title: '',
-  description: '',
-  imageUrl: '',
-};
-
-export const TOP_VIDEOS: Video[] = [];
-
-export const TRENDING_SHORTS: Video[] = [];
-
-export const RECENT_VIDEOS: Video[] = [];
-
-export const CLIPS_DATA: Clip[] = [];
-
-export const INSPIRATIONS_GRID: Inspiration[] = [];
-
 export const USER_PROFILE_DATA: UserProfile = {
   name: 'Alex AI',
   username: '@alex_ai_creates',
@@ -91,13 +75,39 @@ export const USER_PROFILE_DATA: UserProfile = {
   }
 };
 
-export const USER_CREATIONS: Creation[] = [];
+// FIX: Added missing BATTLE_ARENA_ITEMS constant
+export const BATTLE_ARENA_ITEMS: BattleItem[] = [
+  {
+    id: 1,
+    contestantA: {
+      id: 101,
+      imageUrl: 'https://placehold.co/600x800/1e1b4b/ffffff?text=Image+A',
+      prompt: 'A majestic cybernetic lion with neon circuits, standing on a rainy neo-tokyo street, photorealistic.'
+    },
+    contestantB: {
+      id: 102,
+      imageUrl: 'https://placehold.co/600x800/4c1d95/ffffff?text=Image+B',
+      prompt: 'An enchanted forest where trees are made of crystal and the river flows with liquid light, fantasy art.'
+    }
+  },
+  {
+    id: 2,
+    contestantA: {
+      id: 103,
+      imageUrl: 'https://placehold.co/600x800/9333ea/FFFFFF/png?text=Image+C',
+      prompt: 'A steampunk astronaut exploring a forgotten library on Mars, detailed, warm lighting.'
+    },
+    contestantB: {
+      id: 104,
+      imageUrl: 'https://placehold.co/600x800/3b82f6/FFFFFF/png?text=Image+D',
+      prompt: 'Underwater city of Atlantis, bioluminescent structures, schools of exotic fish, epic scale.'
+    }
+  }
+];
 
-export const AI_MODELS = ['Sora', 'Veo', 'Kling', 'Dream Machine', 'Vidu', 'Other'];
+export const AI_MODELS = ['Sora', 'Veo', 'Kling', 'Dream Machine', 'Vidu', 'DALL-E 3', 'Midjourney', 'Stable Diffusion', 'Other'];
 
 export const EXPLORE_TAGS = ['AI Art', 'Generative Music', 'Sci-Fi Worlds', 'Abstract', 'GANs', 'Futurism', 'Surrealism'];
-
-export const BATTLE_ARENA_ITEMS: BattleItem[] = [];
 
 export const ONBOARDING_AVATARS: string[] = [];
 

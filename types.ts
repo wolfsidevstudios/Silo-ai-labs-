@@ -8,13 +8,15 @@ export interface NavItem {
   icon: (props: { className?: string }) => React.JSX.Element;
 }
 
-export interface Video {
+export interface Post {
   id: number;
+  type: 'video' | 'image';
   title: string;
   creator: string;
   creatorId?: string;
-  imageUrl: string;
-  duration: string;
+  imageUrl: string; // Thumbnail for videos, or the image URL for image posts
+  aspectRatio?: '16:9' | '9:16' | '1:1';
+  duration?: string;
   youtubeId?: string;
   videoUrl?: string;
   description?: string;

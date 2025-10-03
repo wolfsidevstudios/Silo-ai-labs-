@@ -1,9 +1,9 @@
 import React from 'react';
-import type { Video } from '../types';
+import type { Post } from '../types';
 import FollowButton from './FollowButton';
 
 interface YouTubeVideoCardProps {
-  video: Video;
+  video: Post;
 }
 
 const YouTubeVideoCard: React.FC<YouTubeVideoCardProps> = ({ video }) => {

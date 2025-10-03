@@ -1,8 +1,8 @@
-import React from 'react';
-import { INSPIRATIONS_GRID } from '../constants';
-import type { Inspiration } from '../types';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import type { Post } from '../types';
 
-const InspirationGridItem: React.FC<{ item: Inspiration }> = ({ item }) => (
+const InspirationGridItem: React.FC<{ item: Post }> = ({ item }) => (
     <div className="relative overflow-hidden rounded-lg group mb-4 break-inside-avoid">
         <img
             src={item.imageUrl}
@@ -22,6 +22,28 @@ const ArrowUpIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
 );
 
 const InspirationPage: React.FC = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchInspirations = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('posts')
+                .select('*')
+                .eq('type', 'image')
+                .order('createdAt', { ascending: false });
+            
+            if (error) {
+                console.error("Error fetching inspirations", error);
+            } else {
+                setPosts(data as Post[]);
+            }
+            setLoading(false);
+        };
+        fetchInspirations();
+    }, []);
+
     return (
         <div className="animate-fade-in relative overflow-hidden">
              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] bg-purple-900/30 rounded-full blur-3xl -z-10" aria-hidden="true"></div>
@@ -57,12 +79,21 @@ const InspirationPage: React.FC = () => {
                     </div>
                 </div>
             </section>
-
-            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-                {INSPIRATIONS_GRID.map(item => (
-                    <InspirationGridItem key={item.id} item={item} />
-                ))}
-            </div>
+            
+            {loading ? (
+                <div className="text-center text-gray-400">Loading inspirations...</div>
+            ) : posts.length > 0 ? (
+                <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
+                    {posts.map(item => (
+                        <InspirationGridItem key={item.id} item={item} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-16 text-gray-500">
+                    <h3 className="text-2xl font-bold">The Wall is Bare</h3>
+                    <p>Be the first to upload an image to inspire others!</p>
+                </div>
+            )}
         </div>
     );
 };
