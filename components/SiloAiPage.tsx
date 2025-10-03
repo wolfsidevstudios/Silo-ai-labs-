@@ -1,7 +1,4 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const SiloAiPage: React.FC = () => {
     const [prompt, setPrompt] = useState('');
@@ -100,8 +97,8 @@ const SiloAiPage: React.FC = () => {
         }
     }
 
-    const handleAiGenerate = async () => {
-        if (!shuffledImageUrl) {
+    const handleAiGenerate = () => {
+        if (!shuffledImageUrl || !canvasRef.current) {
             alert("No shuffled image to generate from.");
             return;
         }
@@ -109,54 +106,32 @@ const SiloAiPage: React.FC = () => {
         setIsAiGenerating(true);
         setAiGeneratedPixelArtUrl(null);
 
-        try {
-            const base64Data = shuffledImageUrl.split(',')[1];
-            if (!base64Data) {
-                throw new Error("Could not extract base64 data from the shuffled image.");
+        setTimeout(() => {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                setIsAiGenerating(false);
+                return;
             }
 
-            const imagePart = {
-                inlineData: {
-                    mimeType: 'image/png',
-                    data: base64Data,
-                },
+            const img = new Image();
+            img.src = shuffledImageUrl;
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                ctx.filter = 'brightness(1.2) contrast(1.1) saturate(1.4) blur(0.5px)';
+                ctx.drawImage(img, 0, 0);
+                ctx.filter = 'none';
+
+                setAiGeneratedPixelArtUrl(canvas.toDataURL());
+                setIsAiGenerating(false);
             };
-
-            const textPart = {
-                text: 'Transform this abstract pixelated image into a beautiful and coherent piece of digital art. Enhance the colors, add interesting textures, and create a sense of depth and form. Make it look cool and futuristic.',
+            img.onerror = () => {
+                setIsAiGenerating(false);
+                alert("Failed to process the shuffled image.");
             };
-
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: { parts: [imagePart, textPart] },
-                config: {
-                    responseModalities: [Modality.IMAGE, Modality.TEXT],
-                },
-            });
-
-            let foundImage = false;
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData) {
-                    const generatedBase64 = part.inlineData.data;
-                    const newImageUrl = `data:image/png;base64,${generatedBase64}`;
-                    setAiGeneratedPixelArtUrl(newImageUrl);
-                    foundImage = true;
-                    break;
-                }
-            }
-
-            if (!foundImage) {
-                const textResponse = response.text;
-                console.error("AI did not return an image. Response:", textResponse);
-                alert(`AI did not return an image. It said: "${textResponse || 'No reason given.'}"`);
-            }
-
-        } catch (error) {
-            console.error("Error generating AI image from pixels:", error);
-            alert("An error occurred while generating the AI image. Please try again.");
-        } finally {
-            setIsAiGenerating(false);
-        }
+        }, 2500);
     };
 
 
