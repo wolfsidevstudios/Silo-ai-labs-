@@ -40,6 +40,12 @@ const App: React.FC = () => {
     const needsOnboarding = !loading && session && (!profile?.username || !profile?.name);
     const isAppReady = !loading && session && !needsOnboarding;
 
+    useEffect(() => {
+        if (isAppReady) {
+            setActivePage('home');
+        }
+    }, [isAppReady]);
+
     const renderPage = () => {
       switch (activePage) {
         case 'home': return <HomePage />;
