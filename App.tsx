@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import type { Page } from './types';
 import FloatingNav from './components/FloatingNav';
@@ -35,20 +34,6 @@ const App: React.FC = () => {
     const { session, profile, loading } = useAuth();
     const [activePage, setActivePage] = useState<Page>('home');
     const isMobile = useIsMobile();
-    // Show splash screen while loading, but for a minimum amount of time for animations.
-    const [isShowingSplash, setIsShowingSplash] = useState(true);
-
-    useEffect(() => {
-      // When auth loading is finished, set a timer to hide the splash screen.
-      // This ensures a smooth animation and a consistent minimum display time.
-      if (!loading) {
-        const timer = setTimeout(() => {
-          setIsShowingSplash(false);
-        }, 5000); // Minimum splash time of 5 seconds
-  
-        return () => clearTimeout(timer);
-      }
-    }, [loading]);
   
     // Determine the application's state based on auth context
     const needsAuth = !loading && !session;
@@ -70,7 +55,7 @@ const App: React.FC = () => {
     };
 
     // Render based on the state
-    if (loading || isShowingSplash) {
+    if (loading) {
         return <SplashScreen />;
     }
 

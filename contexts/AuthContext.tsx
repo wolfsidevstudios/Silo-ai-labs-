@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
@@ -35,8 +36,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     
     useEffect(() => {
-        const getInitialSession = async () => {
-            try {
+        const initialize = async () => {
+            const minDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 5000));
+            
+            const authPromise = (async () => {
                 const { data: { session: initialSession } } = await supabase.auth.getSession();
                 setSession(initialSession);
                 setUser(initialSession?.user ?? null);
@@ -44,6 +47,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const fetchedProfile = await fetchProfile(initialSession.user.id);
                     setProfile(fetchedProfile);
                 }
+            })();
+            
+            try {
+                // Wait for both auth logic and the timer to complete.
+                await Promise.all([authPromise, minDisplayTimePromise]);
             } catch (error) {
                 console.error("Error during initial session fetch:", error);
             } finally {
@@ -51,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         };
 
-        getInitialSession();
+        initialize();
 
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             setSession(newSession);
