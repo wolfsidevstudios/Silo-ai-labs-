@@ -139,6 +139,8 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [hashtags, setHashtags] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionStatus, setSubmissionStatus] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
 
     const handleFileSelect = (file: File) => {
         setUploadedFile(file);
@@ -163,17 +165,23 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
         setTitle('');
         setDescription('');
         setHashtags('');
+        setIsSubmitting(false);
+        setSubmissionStatus(null);
     };
 
     const handlePost = async () => {
+        setIsSubmitting(true);
+        setSubmissionStatus(null);
+
         if (!title || (!uploadedFile && !youtubeVideoId) || !selectedModel) {
-            alert("Please fill out all required fields.");
+            setSubmissionStatus({ message: "Please fill out all required fields.", type: 'error' });
+            setIsSubmitting(false);
             return;
         }
 
         if (!session || !profile || !profile.name) {
-             alert('You must complete your profile before posting.');
-             setActivePage('profile');
+             setSubmissionStatus({ message: 'You must complete your profile before posting.', type: 'error' });
+             setIsSubmitting(false);
              return;
         }
 
@@ -194,10 +202,13 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
         
         if (error) {
             console.error("Could not save post to Supabase", error);
-            alert("There was an error saving your post.");
+            setSubmissionStatus({ message: `Error submitting post: ${error.message}`, type: 'error' });
+            setIsSubmitting(false);
         } else {
-            alert('Post successful!');
-            setActivePage('home');
+            setSubmissionStatus({ message: 'Post successful! Redirecting...', type: 'success' });
+            setTimeout(() => {
+                setActivePage('home');
+            }, 2000);
         }
     };
     
@@ -306,15 +317,15 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
                     <h2 className="text-3xl font-bold">Add your video details</h2>
                     <div>
                         <label htmlFor="title" className="block text-lg font-semibold mb-2">Title</label>
-                        <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50" />
+                        <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white" />
                     </div>
                      <div>
                         <label htmlFor="description" className="block text-lg font-semibold mb-2">Description</label>
-                        <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} className="w-full h-36 p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 resize-none" />
+                        <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} className="w-full h-36 p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 resize-none text-white" />
                     </div>
                      <div>
                         <label htmlFor="hashtags" className="block text-lg font-semibold mb-2">Hashtags</label>
-                        <input type="text" id="hashtags" placeholder="#AI #generative #sora" value={hashtags} onChange={e => setHashtags(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50" />
+                        <input type="text" id="hashtags" placeholder="#AI #generative #sora" value={hashtags} onChange={e => setHashtags(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white" />
                     </div>
                      <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
                         <div className="flex justify-between items-center">
@@ -325,13 +336,20 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
                             <button onClick={() => setIsPromptSubmitted(false)} className="text-sm font-semibold hover:underline">Edit</button>
                         </div>
                     </div>
-                    <div className="flex justify-end gap-4 pt-4">
-                       <button onClick={resetUpload} className="px-6 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
-                           Cancel
-                       </button>
-                        <button onClick={handlePost} className="px-10 py-3 rounded-full text-sm font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out">
-                            Post
-                        </button>
+                    <div className="flex flex-col items-end gap-2 pt-4">
+                        <div className="flex justify-end gap-4 w-full">
+                           <button onClick={resetUpload} disabled={isSubmitting} className="px-6 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50">
+                               Cancel
+                           </button>
+                            <button onClick={handlePost} disabled={isSubmitting} className="px-10 py-3 rounded-full text-sm font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out disabled:opacity-50">
+                                {isSubmitting ? 'Posting...' : 'Post'}
+                            </button>
+                        </div>
+                        {submissionStatus && (
+                            <p className={`text-sm pr-2 ${submissionStatus.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                                {submissionStatus.message}
+                            </p>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-col items-center lg:items-start pt-12">

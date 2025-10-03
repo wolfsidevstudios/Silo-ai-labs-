@@ -73,7 +73,7 @@ const ProfileOnboarding: React.FC = () => {
                 placeholder="Profile Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-center text-lg"
+                className="w-full p-4 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-center text-lg text-white"
               />
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
@@ -82,7 +82,7 @@ const ProfileOnboarding: React.FC = () => {
                   placeholder="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-                  className="w-full p-4 pl-8 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-center text-lg"
+                  className="w-full p-4 pl-8 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-center text-lg text-white"
                 />
               </div>
             </div>
@@ -132,7 +132,7 @@ const ProfileOnboarding: React.FC = () => {
                             type="text"
                             value={`@${username}`}
                             onChange={(e) => setUsername(e.target.value.replace('@', ''))}
-                            className="w-full p-2 bg-transparent border-none rounded-lg focus:outline-none focus:bg-white/10 text-center text-2xl font-bold"
+                            className="w-full p-2 bg-transparent border-none rounded-lg focus:outline-none focus:bg-white/10 text-center text-2xl font-bold text-white"
                           />
                         <input
                             type="text"

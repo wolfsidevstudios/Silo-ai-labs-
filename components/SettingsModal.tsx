@@ -78,23 +78,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ profile, onClose }) => {
               <img src={avatar || 'https://i.ibb.co/QZ0zRxp/IMG-3953.png'} alt="Avatar" className="w-20 h-20 rounded-full border-2 border-white/20 object-cover" />
               <div className="flex-grow">
                 <label htmlFor="avatar-url" className="block text-sm font-semibold mb-1 text-gray-300">Avatar URL</label>
-                <input id="avatar-url" type="text" placeholder="https://..." value={avatar} onChange={(e) => setAvatar(e.target.value)} className="w-full p-2 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <input id="avatar-url" type="text" placeholder="https://..." value={avatar} onChange={(e) => setAvatar(e.target.value)} className="w-full p-2 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" />
               </div>
             </div>
             <div>
               <label htmlFor="profile-name" className="block text-sm font-semibold mb-1 text-gray-300">Name</label>
-              <input id="profile-name" type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+              <input id="profile-name" type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" />
             </div>
             <div>
               <label htmlFor="profile-username" className="block text-sm font-semibold mb-1 text-gray-300">Username</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
-                <input id="profile-username" type="text" placeholder="your_username" value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))} className="w-full p-3 pl-7 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <input id="profile-username" type="text" placeholder="your_username" value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))} className="w-full p-3 pl-7 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" />
               </div>
             </div>
             <div>
               <label htmlFor="profile-bio" className="block text-sm font-semibold mb-1 text-gray-300">Bio</label>
-              <textarea id="profile-bio" value={bio} onChange={(e) => setBio(e.target.value)} className="w-full h-24 p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none" />
+              <textarea id="profile-bio" value={bio} onChange={(e) => setBio(e.target.value)} className="w-full h-24 p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-white" />
             </div>
             {error && <p className="text-red-400 text-sm text-center">{error}</p>}
              <div className="flex justify-end gap-4 pt-4 mt-auto">
