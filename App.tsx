@@ -14,6 +14,7 @@ import MobileNav from './components/MobileNav';
 import AuthModal from './components/AuthModal';
 import ProfileOnboarding from './components/ProfileOnboarding';
 import { useAuth } from './contexts/AuthContext';
+import SplashScreen from './components/SplashScreen';
 
 const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
@@ -55,15 +56,7 @@ const App: React.FC = () => {
 
     // Render based on the state
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-black">
-                <img 
-                    src="https://i.ibb.co/QZ0zRxp/IMG-3953.png" 
-                    alt="SiloSphere Logo" 
-                    className="w-24 h-24 animate-pulse" 
-                />
-            </div>
-        );
+        return <SplashScreen />;
     }
 
     if (needsAuth) {

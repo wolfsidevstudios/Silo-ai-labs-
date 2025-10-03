@@ -37,22 +37,24 @@ const ProfileOnboarding: React.FC = () => {
       const { error } = await supabase
         .from('profiles')
         .update(profileToUpdate)
-        .eq('id', session.user.id);
+        .eq('id', session.user.id)
+        .select()
+        .single(); // This will error if no row is updated, providing feedback
 
       if (error) {
         throw error;
       }
       
       await refreshProfile();
-      // No need to set isSubmitting to false on success, as the component will unmount.
+      // On success, the component will unmount as useAuth provides the new profile.
     } catch (error: any) {
       console.error('Error updating profile:', error);
       if (error?.code === '23505') {
           alert('This username is already taken. Please choose another one.');
       } else {
-          alert('Could not update your profile. Please try again.');
+          alert(`Could not update your profile. Please try again. Details: ${error.message}`);
       }
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Make sure to reset loading state on failure
     }
   };
 
