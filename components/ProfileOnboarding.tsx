@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import type { UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
-
-interface ProfileOnboardingProps {
-  onComplete: (profile: UserProfile) => void;
-}
+import { useAuth } from '../contexts/AuthContext';
 
 const APP_ICON_URL = 'https://i.ibb.co/QZ0zRxp/IMG-3953.png';
 
-const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => {
+const ProfileOnboarding: React.FC = () => {
+  const { session, refreshProfile } = useAuth();
   const [step, setStep] = useState<'details' | 'avatar' | 'preview'>('details');
 
   const [name, setName] = useState('');
@@ -17,25 +14,29 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
   const [bio, setBio] = useState('Welcome to my SiloSphere!');
 
   const handleFinish = async () => {
-    const profileToInsert = {
-      name: name,
+    if (!session?.user) {
+        alert("Authentication error. Please sign in again.");
+        return;
+    }
+    
+    const profileToUpdate = {
+      id: session.user.id,
+      name,
       username: `@${username}`,
-      avatar: avatar,
-      bio: bio,
-      stats: { posts: 0, followers: 0, following: 0 },
+      avatar,
+      bio,
     };
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('profiles')
-      .insert(profileToInsert)
-      .select()
-      .single();
+      .update(profileToUpdate)
+      .eq('id', session.user.id);
 
     if (error) {
-      console.error('Error creating profile:', error);
-      alert('Could not create profile. The username might already be taken.');
+      console.error('Error updating profile:', error);
+      alert('Could not update profile. The username might already be taken.');
     } else {
-      onComplete(data as UserProfile);
+      await refreshProfile();
     }
   };
 
@@ -142,7 +143,7 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black z-40 flex items-center justify-center p-4">
       {renderStep()}
     </div>
   );

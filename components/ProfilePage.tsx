@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { USER_CREATIONS } from '../constants';
 import type { Creation, UserProfile } from '../types';
-import ProfileOnboarding from './ProfileOnboarding';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -37,50 +37,26 @@ const CreationGridItem: React.FC<{ item: Creation }> = ({ item }) => (
 );
 
 const ProfilePage: React.FC = () => {
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [showOnboarding, setShowOnboarding] = useState(false);
+    const { profile: ownProfile, session, signOut } = useAuth();
+    // This state will hold the profile being viewed, which might not be the logged-in user's
+    const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
     const [activeTab, setActiveTab] = useState('Creations');
-    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    
     const tabs = ['Creations', 'Clips', 'Liked'];
 
+    // For now, we assume the profile page is always for the logged-in user.
+    // A future implementation would use routing like /profile/:username
     useEffect(() => {
-        const id = localStorage.getItem('siloSphereUserProfileId');
-        if (id) {
-            setCurrentUserId(parseInt(id, 10));
+        if(ownProfile) {
+            setViewedProfile(ownProfile);
         }
+        setIsLoading(false);
+    }, [ownProfile]);
 
-        const onboardingComplete = localStorage.getItem('siloSphereOnboardingComplete') === 'true';
-        if (onboardingComplete) {
-            const fetchProfile = async () => {
-                const profileId = localStorage.getItem('siloSphereUserProfileId');
-                if (profileId) {
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', parseInt(profileId, 10))
-                        .single();
-
-                    if (error) {
-                        console.error('Error fetching profile:', error);
-                        localStorage.removeItem('siloSphereOnboardingComplete');
-                        localStorage.removeItem('siloSphereUserProfileId');
-                        setShowOnboarding(true);
-                    } else {
-                        setProfile(data);
-                    }
-                } else {
-                    setShowOnboarding(true);
-                }
-            };
-            fetchProfile();
-        } else {
-            setShowOnboarding(true);
-        }
-    }, []);
-    
     useEffect(() => {
-        if (!currentUserId || !profile || !profile.id || currentUserId === profile.id) {
+        if (!session?.user?.id || !viewedProfile?.id || session.user.id === viewedProfile.id) {
             return;
         }
 
@@ -88,36 +64,26 @@ const ProfilePage: React.FC = () => {
              const { count } = await supabase
                 .from('followers')
                 .select('*', { count: 'exact', head: true })
-                .eq('followerId', currentUserId)
-                .eq('followingId', profile.id);
+                .eq('followerId', session.user.id)
+                .eq('followingId', viewedProfile.id);
             setIsFollowing(!!count && count > 0);
         };
         checkFollowStatus();
-    }, [currentUserId, profile]);
-
-    const handleOnboardingComplete = (newProfile: UserProfile) => {
-        if (newProfile.id) {
-            localStorage.setItem('siloSphereUserProfileId', newProfile.id.toString());
-            setCurrentUserId(newProfile.id);
-        }
-        localStorage.setItem('siloSphereOnboardingComplete', 'true');
-        setProfile(newProfile);
-        setShowOnboarding(false);
-    };
+    }, [session, viewedProfile]);
 
     const handleFollowToggle = async () => {
-        if (!currentUserId || !profile || !profile.id) return;
+        if (!session?.user?.id || !viewedProfile?.id) return;
 
         const rpcName = isFollowing ? 'unfollow_user' : 'follow_user';
         const { error } = await supabase.rpc(rpcName, {
-            follower_id: currentUserId,
-            following_id: profile.id
+            follower_id: session.user.id,
+            following_id: viewedProfile.id
         });
 
         if (!error) {
             setIsFollowing(!isFollowing);
-            setProfile(p => {
-                if (!p) return null;
+            setViewedProfile(p => {
+                if (!p || !p.stats) return null;
                 const newFollowerCount = p.stats.followers + (isFollowing ? -1 : 1);
                 return {...p, stats: {...p.stats, followers: newFollowerCount }};
             });
@@ -126,30 +92,37 @@ const ProfilePage: React.FC = () => {
             alert('An error occurred. Please try again.');
         }
     };
-
-    if (showOnboarding) {
-        return <ProfileOnboarding onComplete={handleOnboardingComplete} />;
-    }
-
-    if (!profile) {
-        return (
+    
+    if (isLoading) {
+         return (
             <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
                 <div className="text-gray-400">Loading Profile...</div>
             </div>
         );
     }
+
+    if (!viewedProfile) {
+        return (
+             <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
+                <div className="text-gray-400">Could not load profile.</div>
+            </div>
+        )
+    }
     
-    const isOwnProfile = currentUserId === profile.id;
+    const isOwnProfile = session?.user?.id === viewedProfile.id;
 
     return (
         <div className="animate-fade-in max-w-4xl mx-auto">
             <header className="flex flex-col md:flex-row items-center gap-8 mb-12">
-                <img src={profile.avatar} alt={profile.name} className="w-36 h-36 rounded-full border-4 border-white/20 object-cover" />
+                <img src={viewedProfile.avatar} alt={viewedProfile.name} className="w-36 h-36 rounded-full border-4 border-white/20 object-cover" />
                 <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                        <h1 className="text-3xl font-bold">{profile.username}</h1>
+                        <h1 className="text-3xl font-bold">{viewedProfile.username}</h1>
                         {isOwnProfile ? (
+                            <>
                             <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>
+                            <button onClick={signOut} className="px-4 py-2 bg-red-600/20 text-red-300 rounded-lg hover:bg-red-600/40 transition-colors text-sm font-semibold">Sign Out</button>
+                            </>
                         ) : (
                             <button
                                 onClick={handleFollowToggle}
@@ -160,13 +133,13 @@ const ProfilePage: React.FC = () => {
                         )}
                     </div>
                      <div className="flex justify-center md:justify-start gap-8 mb-4">
-                        <Stat value={profile.stats.posts} label="posts" />
-                        <Stat value={profile.stats.followers} label="followers" />
-                        <Stat value={profile.stats.following} label="following" />
+                        <Stat value={viewedProfile.stats?.posts ?? 0} label="posts" />
+                        <Stat value={viewedProfile.stats?.followers ?? 0} label="followers" />
+                        <Stat value={viewedProfile.stats?.following ?? 0} label="following" />
                     </div>
                     <div>
-                        <h2 className="font-bold text-white">{profile.name}</h2>
-                        <p className="text-gray-400 whitespace-pre-line">{profile.bio}</p>
+                        <h2 className="font-bold text-white">{viewedProfile.name}</h2>
+                        <p className="text-gray-400 whitespace-pre-line">{viewedProfile.bio}</p>
                     </div>
                 </div>
             </header>

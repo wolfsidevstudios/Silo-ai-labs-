@@ -12,7 +12,7 @@ export interface Video {
   id: number;
   title: string;
   creator: string;
-  creatorId?: number;
+  creatorId?: string;
   imageUrl: string;
   duration: string;
   youtubeId?: string;
@@ -33,7 +33,7 @@ export interface Clip {
   id: number;
   videoUrl: string;
   user: {
-    id: number;
+    id: string;
     name: string;
     avatar: string;
   };
@@ -44,12 +44,12 @@ export interface Clip {
 }
 
 export interface UserProfile {
-  id?: number;
-  name: string;
-  username: string;
-  avatar: string;
-  bio: string;
-  stats: {
+  id?: string;
+  name?: string;
+  username?: string;
+  avatar?: string;
+  bio?: string;
+  stats?: {
     posts: number;
     followers: number;
     following: number;

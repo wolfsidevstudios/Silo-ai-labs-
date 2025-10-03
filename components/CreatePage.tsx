@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { AI_MODELS, USER_PROFILE_DATA } from '../constants';
-import type { Page, Video } from '../types';
+import { AI_MODELS } from '../constants';
+import type { Page } from '../types';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ToolCardProps {
     icon: React.ReactNode;
@@ -125,6 +126,7 @@ interface CreatePageProps {
 }
 
 const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
+    const { session, profile } = useAuth();
     const [mode, setMode] = useState<'create' | 'upload'>('create');
     const [uploadType, setUploadType] = useState<'file' | 'youtube'>('file');
     
@@ -169,27 +171,15 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
             return;
         }
 
-        const profileId = localStorage.getItem('siloSphereUserProfileId');
-        if (!profileId) {
-            alert('You must create a profile before posting. Please go to the Profile page.');
-            setActivePage('profile');
-            return;
-        }
-
-        const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', profileId)
-            .single();
-
-        if (profileError || !profileData) {
-            alert('Could not find your profile. Please try again.');
-            return;
+        if (!session || !profile || !profile.name) {
+             alert('You must complete your profile before posting.');
+             setActivePage('profile');
+             return;
         }
 
         const newPost = {
             title,
-            creatorName: profileData.name,
+            creatorName: profile.name,
             imageUrl: youtubeVideoId ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg` : videoPreviewUrl!,
             duration: '0:00', // Placeholder, could be implemented with video metadata reader
             description,
@@ -197,7 +187,7 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
             model: selectedModel,
             prompt,
             youtubeId: youtubeVideoId || null,
-            profileId: parseInt(profileId, 10),
+            profileId: session.user.id,
         };
 
         const { error } = await supabase.from('posts').insert(newPost);
@@ -232,6 +222,13 @@ const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
     }
 
     const renderUploadContent = () => {
+        if (!session) {
+            return (
+                <div className="text-center text-gray-400">
+                    <p>Please sign in or sign up to upload content.</p>
+                </div>
+            )
+        }
         if (!uploadedFile && !youtubeVideoId) {
              return (
                 <div>

@@ -10,7 +10,9 @@ import ProfilePage from './components/ProfilePage';
 import BattlePage from './components/BattlePage';
 import SiloAiPage from './components/SiloAiPage';
 import MobileNav from './components/MobileNav';
-import WelcomeModal from './components/WelcomeModal';
+import AuthModal from './components/AuthModal';
+import ProfileOnboarding from './components/ProfileOnboarding';
+import { useAuth } from './contexts/AuthContext';
 
 const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
@@ -25,17 +27,25 @@ const useIsMobile = (breakpoint = 768) => {
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('home');
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const isMobile = useIsMobile();
+  const { session, profile, loading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
-    const profileId = localStorage.getItem('siloSphereUserProfileId');
-    if (!profileId) {
-      setShowWelcomeModal(true);
+    if (!loading && !session) {
+      setShowAuthModal(true);
+    } else {
+      setShowAuthModal(false);
     }
-  }, []);
+  }, [session, loading]);
+
+  const needsOnboarding = session && profile && !profile.username;
 
   const renderContent = () => {
+    if (needsOnboarding) {
+        return <ProfileOnboarding />;
+    }
+    
     switch (activePage) {
       case 'home':
         return <HomePage />;
@@ -52,30 +62,41 @@ const App: React.FC = () => {
       case 'create':
         return <CreatePage setActivePage={setActivePage} />;
       case 'profile':
+        // If logged in but needs onboarding, redirect from profile to onboarding
+        if (session && !profile?.username) {
+            return <ProfileOnboarding />;
+        }
+        // If not logged in and tries to access profile, show auth modal
+        if (!session) {
+           return <div className="text-center py-20">Please sign in to view your profile.</div>
+        }
         return <ProfilePage />;
       default:
         return <HomePage />;
     }
+  };
+  
+  const handleAuthAction = () => {
+      setShowAuthModal(true);
+      // In case they click sign in/up from a guest session
   };
 
   const mainPadding = isMobile 
     ? "px-4 pt-8 pb-32"
     : "pl-32 pr-8 pt-12 pb-8";
     
-  const handleAuthAction = () => {
-    setActivePage('profile');
-    setShowWelcomeModal(false);
-  };
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+            <img src="https://i.ibb.co/QZ0zRxp/IMG-3953.png" alt="SiloSphere Logo" className="w-24 h-24 animate-pulse" />
+        </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {showWelcomeModal && (
-        <WelcomeModal 
-          onSignUp={handleAuthAction}
-          onSignIn={handleAuthAction}
-          onGuest={() => setShowWelcomeModal(false)}
-        />
-      )}
+      {showAuthModal && !needsOnboarding && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      
       {isMobile ? (
         <MobileNav activePage={activePage} setActivePage={setActivePage} />
       ) : (
