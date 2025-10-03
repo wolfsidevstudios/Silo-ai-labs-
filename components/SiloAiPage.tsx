@@ -7,7 +7,9 @@ const SiloAiPage: React.FC = () => {
 
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [shuffledImageUrl, setShuffledImageUrl] = useState<string | null>(null);
+    const [aiGeneratedPixelArtUrl, setAiGeneratedPixelArtUrl] = useState<string | null>(null);
     const [isShuffling, setIsShuffling] = useState(false);
+    const [isAiGenerating, setIsAiGenerating] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const handleGenerate = () => {
@@ -25,6 +27,7 @@ const SiloAiPage: React.FC = () => {
         if (!canvasRef.current) return;
         setIsShuffling(true);
         setShuffledImageUrl(null);
+        setAiGeneratedPixelArtUrl(null);
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -49,7 +52,6 @@ const SiloAiPage: React.FC = () => {
                 }
             }
             
-            // Fisher-Yates shuffle
             for (let i = cells.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [cells[i], cells[j]] = [cells[j], cells[i]];
@@ -94,6 +96,39 @@ const SiloAiPage: React.FC = () => {
             shufflePixels(uploadedImage);
         }
     }
+
+    const handleAiGenerate = useCallback(() => {
+        if (!canvasRef.current || !shuffledImageUrl) return;
+        setIsAiGenerating(true);
+        setAiGeneratedPixelArtUrl(null);
+
+        setTimeout(() => {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                setIsAiGenerating(false);
+                return;
+            }
+
+            const img = new Image();
+            img.src = shuffledImageUrl;
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.filter = 'saturate(1.5) contrast(1.2) brightness(1.1) blur(1px)';
+                ctx.drawImage(img, 0, 0);
+                ctx.filter = 'none'; // Reset filter
+                setAiGeneratedPixelArtUrl(canvas.toDataURL());
+                setIsAiGenerating(false);
+            }
+            img.onerror = () => {
+                setIsAiGenerating(false);
+                alert("Failed to process image for generation.")
+            }
+        }, 2500);
+    }, [shuffledImageUrl]);
+
 
     return (
         <div className="animate-fade-in space-y-16">
@@ -150,15 +185,15 @@ const SiloAiPage: React.FC = () => {
             {/* Pixel Grid Rearranger */}
             <section>
                 <h2 className="text-3xl font-bold mb-4 text-center text-gray-200">Pixel Grid Rearranger</h2>
-                <div className="max-w-4xl mx-auto flex flex-col items-center gap-8">
-                     <p className="text-gray-400 text-center">Upload an image to deconstruct and reassemble it into a new piece of abstract art.</p>
+                <div className="max-w-6xl mx-auto flex flex-col items-center gap-8">
+                     <p className="text-gray-400 text-center">Upload an image to deconstruct it, then generate a new piece of abstract art from its pixels.</p>
                     <div className="flex gap-4">
                         <label className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-black cursor-pointer hover:opacity-90 transition-opacity">
-                            Upload Image
+                            {uploadedImage ? 'Upload Another' : 'Upload Image'}
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                         </label>
                         {uploadedImage && (
-                            <button onClick={handleReshuffle} disabled={isShuffling} className="px-8 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50">
+                            <button onClick={handleReshuffle} disabled={isShuffling || isAiGenerating} className="px-8 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50">
                                 {isShuffling ? 'Shuffling...' : 'Re-Shuffle'}
                             </button>
                         )}
@@ -168,15 +203,41 @@ const SiloAiPage: React.FC = () => {
 
                     {isShuffling && <div className="text-center mt-4 text-gray-400">Rearranging pixels...</div>}
 
-                    {(uploadedImage || shuffledImageUrl) && !isShuffling && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mt-4 animate-fade-in">
+                    {(uploadedImage) && !isShuffling && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-4 animate-fade-in">
                             <div className="text-center">
-                                <h3 className="font-semibold mb-2">Original</h3>
+                                <h3 className="font-semibold mb-2 text-gray-300">Original</h3>
                                 <img src={uploadedImage ?? ''} alt="Original" className="rounded-xl w-full aspect-square object-cover" />
                             </div>
-                            <div className="text-center">
-                                <h3 className="font-semibold mb-2">Shuffled</h3>
+                            <div className="text-center space-y-4">
+                                <h3 className="font-semibold text-gray-300">Shuffled</h3>
                                 {shuffledImageUrl && <img src={shuffledImageUrl} alt="Shuffled" className="rounded-xl w-full aspect-square object-cover" />}
+                                {shuffledImageUrl && (
+                                    <button onClick={handleAiGenerate} disabled={isAiGenerating} className="px-8 py-3 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-50 w-full">
+                                        {isAiGenerating ? 'Generating...' : '✨ Generate AI Image'}
+                                    </button>
+                                )}
+                            </div>
+                             <div className="text-center">
+                                <h3 className="font-semibold mb-2 text-gray-300">AI Generated</h3>
+                                {isAiGenerating && (
+                                    <div className="w-full aspect-square bg-white/5 rounded-xl flex items-center justify-center">
+                                        <div className="text-gray-400 animate-pulse">Turning pixels into art...</div>
+                                    </div>
+                                )}
+                                {aiGeneratedPixelArtUrl && (
+                                  <div className="space-y-4">
+                                    <img src={aiGeneratedPixelArtUrl} alt="AI Generated from Pixels" className="rounded-xl w-full aspect-square object-cover" />
+                                    <div className="flex justify-center gap-4">
+                                        <button className="px-6 py-2 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
+                                          Download
+                                        </button>
+                                        <button className="px-6 py-2 rounded-full text-sm font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                                          Publish
+                                        </button>
+                                    </div>
+                                  </div>
+                                )}
                             </div>
                         </div>
                     )}
