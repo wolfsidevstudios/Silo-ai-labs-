@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
+// The onClose prop is passed from App.tsx but is no longer needed visually.
+// We keep it in the signature to avoid breaking the App.tsx call, though it does nothing.
 interface AuthModalProps {
   onClose: () => void;
 }
@@ -22,7 +24,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         if (view === 'sign_in') {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
-            onClose(); // Close modal on success
+            // No need to call onClose(), auth state change handles the redirect.
         } else {
             const { error } = await supabase.auth.signUp({ email, password });
             if (error) throw error;
@@ -34,89 +36,107 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         setLoading(false);
       }
   };
-  
-  if (emailSent) {
+
+  const RightPaneContent = () => {
+    if (emailSent) {
       return (
-         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-black/50 border border-white/20 rounded-2xl shadow-2xl p-8 text-center flex flex-col items-center relative">
+        <div className="w-full max-w-sm text-center">
             <img 
               src="https://i.ibb.co/QZ0zRxp/IMG-3953.png" 
               alt="SiloSphere Logo" 
-              className="w-20 h-20 mb-4" 
+              className="w-20 h-20 mb-4 mx-auto" 
             />
             <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
                 Confirm your email
             </h1>
-            <p className="text-gray-400 mb-8">
+            <p className="text-gray-400">
                 We've sent a confirmation link to <strong className="text-white">{email}</strong>. Please click the link to finish signing up.
             </p>
-            <button
-                onClick={onClose}
-                className="w-full px-8 py-3 rounded-full font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
-            >
-                Close
-            </button>
-          </div>
         </div>
-      )
-  }
+      );
+    }
+
+    return (
+        <div className="w-full max-w-sm">
+            <img 
+              src="https://i.ibb.co/QZ0zRxp/IMG-3953.png" 
+              alt="SiloSphere Logo" 
+              className="w-20 h-20 mb-4 mx-auto md:hidden" // Show logo on mobile
+            />
+            <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2 text-center">
+                {view === 'sign_in' ? "Welcome Back" : "Create Account"}
+            </h1>
+            <p className="text-gray-400 mb-8 text-center">
+                {view === 'sign_in' ? "Sign in to continue to SiloSphere." : "Join to create, share, and discover."}
+            </p>
+            
+            <form onSubmit={handleAuthAction} className="w-full space-y-4">
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-400"
+                  required
+                />
+                 <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-400"
+                  required
+                />
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full px-8 py-3 rounded-full font-semibold bg-white text-black shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out disabled:opacity-50"
+                >
+                    {loading ? 'Processing...' : (view === 'sign_in' ? 'Sign In' : 'Sign Up')}
+                </button>
+                {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
+            </form>
+
+            <button
+              onClick={() => {
+                  setView(view === 'sign_in' ? 'sign_up' : 'sign_in');
+                  setError(null);
+              }}
+              className="mt-6 text-sm text-gray-400 hover:text-white transition-colors w-full text-center"
+            >
+              {view === 'sign_in' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+            </button>
+        </div>
+    );
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
-      <div className="w-full max-w-md bg-black/50 border border-white/20 rounded-2xl shadow-2xl p-8 text-center flex flex-col items-center relative">
-         <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-        </button>
-        <img 
-          src="https://i.ibb.co/QZ0zRxp/IMG-3953.png" 
-          alt="SiloSphere Logo" 
-          className="w-20 h-20 mb-4" 
-        />
-        <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-            {view === 'sign_in' ? "Sign In to SiloSphere" : "Create Your Account"}
-        </h1>
-        <p className="text-gray-400 mb-8">
-            {view === 'sign_in' ? "Welcome back to the community." : "Join to create, share, and discover."}
-        </p>
-        
-        <form onSubmit={handleAuthAction} className="w-full space-y-4">
-            <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white"
-              required
-            />
-             <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white"
-              required
-            />
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full px-8 py-3 rounded-full font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out disabled:opacity-50"
-            >
-                {loading ? 'Processing...' : (view === 'sign_in' ? 'Sign In' : 'Sign Up')}
-            </button>
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-        </form>
+    <div className="min-h-screen bg-black text-white flex animate-fade-in">
+      {/* Left Pane (Animated) */}
+      <div className="hidden md:flex w-1/2 bg-gradient-to-br from-gray-900 via-black to-indigo-900/80 relative items-center justify-center p-12 overflow-hidden">
+        {/* Animated Shapes */}
+        <div className="absolute top-10 -left-20 w-80 h-80 bg-purple-500/30 rounded-full blur-3xl animate-drift opacity-50" style={{ animationDelay: '0s', animationDuration: '25s' }}></div>
+        <div className="absolute bottom-20 -right-10 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-drift opacity-40" style={{ animationDelay: '5s', animationDuration: '30s' }}></div>
+        <div className="absolute -bottom-20 -left-10 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl animate-drift opacity-60" style={{ animationDelay: '10s', animationDuration: '35s' }}></div>
 
-        <button
-          onClick={() => {
-              setView(view === 'sign_in' ? 'sign_up' : 'sign_in');
-              setError(null);
-          }}
-          className="mt-6 text-sm text-gray-400 hover:text-white transition-colors"
-        >
-          {view === 'sign_in' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-        </button>
+        <div className="relative z-10 text-center">
+            <img 
+              src="https://i.ibb.co/QZ0zRxp/IMG-3953.png" 
+              alt="SiloSphere Logo" 
+              className="w-40 h-40 mb-8 mx-auto animate-float"
+            />
+            <h1 className="text-5xl font-extrabold text-white tracking-tight">
+                SiloSphere
+            </h1>
+            <p className="text-lg text-gray-300 mt-4 max-w-sm mx-auto">
+                The future of AI-powered social media. Create, inspire, and connect.
+            </p>
+        </div>
+      </div>
+
+      {/* Right Pane (Form) */}
+      <div className="w-full md:w-1/2 flex items-center justify-center p-8">
+        <RightPaneContent />
       </div>
     </div>
   );

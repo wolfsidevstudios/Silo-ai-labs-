@@ -39,12 +39,12 @@ const App: React.FC = () => {
     const [isShowingSplash, setIsShowingSplash] = useState(true);
 
     useEffect(() => {
-      // When auth loading is finished, set a short timer to hide the splash screen.
-      // This ensures a smooth animation without a long, forced wait.
+      // When auth loading is finished, set a timer to hide the splash screen.
+      // This ensures a smooth animation and a consistent minimum display time.
       if (!loading) {
         const timer = setTimeout(() => {
           setIsShowingSplash(false);
-        }, 2000); // Minimum splash time
+        }, 5000); // Minimum splash time of 5 seconds
   
         return () => clearTimeout(timer);
       }
