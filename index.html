@@ -7,40 +7,6 @@
     <title>SiloSphere</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      @keyframes intro-bounce {
-        0% {
-          transform: translateY(100vh) scale(0.7);
-          opacity: 0;
-        }
-        50% {
-          opacity: 1;
-        }
-        70% {
-          transform: translateY(-30px) scale(1.1);
-        }
-        80% {
-          transform: translateY(10px) scale(0.95);
-        }
-        90% {
-          transform: translateY(-5px) scale(1.02);
-        }
-        100% {
-          transform: translateY(0) scale(1);
-          opacity: 1;
-        }
-      }
-
-      @keyframes explode {
-        0% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(50);
-          opacity: 0;
-        }
-      }
-
       @keyframes float {
         0%, 100% {
           transform: translateY(0);
@@ -66,14 +32,6 @@
         100% {
           transform: translate(0, 0) rotate(0deg);
         }
-      }
-
-      .animate-intro-bounce {
-        animation: intro-bounce 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      }
-
-      .animate-explode {
-        animation: explode 1s ease-in forwards;
       }
 
       .animate-float {

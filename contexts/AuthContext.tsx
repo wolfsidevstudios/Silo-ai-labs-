@@ -37,9 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     useEffect(() => {
         const initialize = async () => {
-            const minDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 5000));
-            
-            const authPromise = (async () => {
+            try {
                 const { data: { session: initialSession } } = await supabase.auth.getSession();
                 setSession(initialSession);
                 setUser(initialSession?.user ?? null);
@@ -47,11 +45,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const fetchedProfile = await fetchProfile(initialSession.user.id);
                     setProfile(fetchedProfile);
                 }
-            })();
-            
-            try {
-                // Wait for both auth logic and the timer to complete.
-                await Promise.all([authPromise, minDisplayTimePromise]);
             } catch (error) {
                 console.error("Error during initial session fetch:", error);
             } finally {
