@@ -7,6 +7,7 @@ import InspirationPage from './components/InspirationPage';
 import ExplorePage from './components/ExplorePage';
 import CreatePage from './components/CreatePage';
 import ProfilePage from './components/ProfilePage';
+import BattlePage from './components/BattlePage';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('home');
@@ -17,12 +18,14 @@ const App: React.FC = () => {
         return <HomePage />;
       case 'clips':
         return <ClipsPage />;
+      case 'battle':
+        return <BattlePage />;
       case 'inspiration':
         return <InspirationPage />;
       case 'explore':
         return <ExplorePage />;
       case 'create':
-        return <CreatePage />;
+        return <CreatePage setActivePage={setActivePage} />;
       case 'profile':
         return <ProfilePage />;
       default:

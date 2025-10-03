@@ -1,5 +1,5 @@
 import React from 'react';
-import type { NavItem, Video, Inspiration, Clip, UserProfile, Creation } from './types';
+import type { NavItem, Video, Inspiration, Clip, UserProfile, Creation, BattleItem } from './types';
 
 const HomeIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -12,6 +12,13 @@ const ClipsIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
 );
+
+const BattleIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12.012 2.25c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Zm0 13.5c.499 0 .997.025 1.488.073a11.24 11.24 0 0 1 8.351 4.34c.22.384.22.868 0 1.252a11.24 11.24 0 0 1-8.351 4.34c-.491.048-.989.073-1.488.073s-.997-.025-1.488-.073a11.24 11.24 0 0 1-8.351-4.34c-.22-.384-.22-.868 0-1.252a11.24 11.24 0 0 1 8.351-4.34c.491-.048.989-.073 1.488-.073Z" />
+    </svg>
+);
+
 
 const InspirationIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -40,6 +47,7 @@ const ProfileIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
 export const NAVIGATION_ITEMS: NavItem[] = [
   { id: 'home', label: 'Home', icon: HomeIcon },
   { id: 'clips', label: 'Clips', icon: ClipsIcon },
+  { id: 'battle', label: 'Battle', icon: BattleIcon },
   { id: 'inspiration', label: 'Inspiration', icon: InspirationIcon },
   { id: 'explore', label: 'Explore', icon: ExploreIcon },
   { id: 'create', label: 'Create', icon: CreateIcon },
@@ -119,4 +127,29 @@ export const USER_CREATIONS: Creation[] = [
   { id: 9, imageUrl: 'https://picsum.photos/seed/user9/500/500', type: 'image' },
 ];
 
+export const AI_MODELS = ['Sora', 'Veo', 'Kling', 'Dream Machine', 'Vidu', 'Other'];
+
 export const EXPLORE_TAGS = ['AI Art', 'Generative Music', 'Sci-Fi Worlds', 'Abstract', 'GANs', 'Futurism', 'Surrealism'];
+
+export const BATTLE_ARENA_ITEMS: BattleItem[] = [
+    {
+        id: 1,
+        contestantA: { id: 101, imageUrl: 'https://picsum.photos/seed/battleA1/600/800', prompt: 'A hyper-realistic portrait of a wise old owl wearing a monocle' },
+        contestantB: { id: 102, imageUrl: 'https://picsum.photos/seed/battleB1/600/800', prompt: 'A surrealist painting of a clock melting over a desert landscape' }
+    },
+    {
+        id: 2,
+        contestantA: { id: 103, imageUrl: 'https://picsum.photos/seed/battleA2/600/800', prompt: 'A neon-drenched cyberpunk city street at night in the rain' },
+        contestantB: { id: 104, imageUrl: 'https://picsum.photos/seed/battleB2/600/800', prompt: 'A serene, enchanted forest with glowing mushrooms and mystical creatures' }
+    },
+    {
+        id: 3,
+        contestantA: { id: 105, imageUrl: 'https://picsum.photos/seed/battleA3/600/800', prompt: 'A steampunk-inspired submarine exploring the depths of the ocean' },
+        contestantB: { id: 106, imageUrl: 'https://picsum.photos/seed/battleB3/600/800', prompt: 'An astronaut discovering an ancient alien artifact on a distant planet' }
+    },
+     {
+        id: 4,
+        contestantA: { id: 107, imageUrl: 'https://picsum.photos/seed/battleA4/600/800', prompt: 'An abstract explosion of colors, representing the sound of jazz' },
+        contestantB: { id: 108, imageUrl: 'https://picsum.photos/seed/battleB4/600/800', prompt: 'A photorealistic image of a majestic dragon flying over a mountain range' }
+    },
+];

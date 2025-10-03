@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type Page = 'home' | 'explore' | 'create' | 'profile' | 'clips' | 'inspiration';
+export type Page = 'home' | 'explore' | 'create' | 'profile' | 'clips' | 'inspiration' | 'battle';
 
 export interface NavItem {
   id: Page;
@@ -52,4 +52,16 @@ export interface Creation {
   id: number;
   imageUrl: string;
   type: 'image' | 'video';
+}
+
+export interface BattleContestant {
+  id: number;
+  imageUrl: string;
+  prompt: string;
+}
+
+export interface BattleItem {
+  id: number;
+  contestantA: BattleContestant;
+  contestantB: BattleContestant;
 }

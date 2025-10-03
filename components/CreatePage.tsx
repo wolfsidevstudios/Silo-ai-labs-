@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { AI_MODELS, USER_PROFILE_DATA } from '../constants';
+import type { Page } from '../types';
 
 interface ToolCardProps {
     icon: React.ReactNode;
@@ -26,25 +28,224 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description }) => (
     </div>
 );
 
-const UploadArea: React.FC = () => (
-    <div className="w-full max-w-3xl mx-auto">
-        <div className="relative flex flex-col items-center justify-center w-full h-96 border-2 border-dashed border-white/20 rounded-2xl p-8 text-center cursor-pointer hover:bg-white/5 hover:border-white/30 transition-all duration-300">
-            <div className="text-white/30 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
-                </svg>
+const UploadArea: React.FC<{ onFileSelect: (file: File) => void }> = ({ onFileSelect }) => {
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files[0]) {
+            onFileSelect(event.target.files[0]);
+        }
+    };
+
+    const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
+        if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+            onFileSelect(event.dataTransfer.files[0]);
+        }
+    }, [onFileSelect]);
+    
+    const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+    }, []);
+
+    const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
+    }, []);
+
+    return (
+        <div className="w-full max-w-3xl mx-auto" onDrop={handleDrop} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave}>
+            <div className={`relative flex flex-col items-center justify-center w-full h-96 border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${isDragging ? 'border-white/50 bg-white/10' : 'border-white/20 hover:bg-white/5 hover:border-white/30'}`}>
+                <div className="text-white/30 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
+                    </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white">Upload Your Content</h3>
+                <p className="text-gray-400 mt-1">Drag & drop video here or click to browse</p>
+                <p className="text-xs text-gray-500 mt-4">Supports: MP4, MOV. Max 100MB.</p>
+                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleFileChange} accept="video/mp4,video/quicktime" />
             </div>
-            <h3 className="text-xl font-bold text-white">Upload Your Content</h3>
-            <p className="text-gray-400 mt-1">Drag & drop files here or click to browse</p>
-            <p className="text-xs text-gray-500 mt-4">Supports: JPG, PNG, MP4, MOV. Max 100MB.</p>
-            <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
         </div>
-    </div>
-);
+    );
+};
 
+interface CreatePageProps {
+  setActivePage: (page: Page) => void;
+}
 
-const CreatePage: React.FC = () => {
+const CreatePage: React.FC<CreatePageProps> = ({ setActivePage }) => {
     const [mode, setMode] = useState<'create' | 'upload'>('create');
+    
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+    const [selectedModel, setSelectedModel] = useState<string | null>(null);
+    const [prompt, setPrompt] = useState('');
+    const [isPromptSubmitted, setIsPromptSubmitted] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [hashtags, setHashtags] = useState('');
+
+    const handleFileSelect = (file: File) => {
+        setUploadedFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setVideoPreviewUrl(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
+    
+    const resetUpload = () => {
+        setUploadedFile(null);
+        setVideoPreviewUrl(null);
+        setSelectedModel(null);
+        setPrompt('');
+        setIsPromptSubmitted(false);
+        setTitle('');
+        setDescription('');
+        setHashtags('');
+    };
+
+    const handlePost = () => {
+        if (!title || !uploadedFile || !videoPreviewUrl || !selectedModel) {
+            alert("Please fill out all required fields.");
+            return;
+        }
+
+        const newPost = {
+            id: Date.now(),
+            title,
+            creator: USER_PROFILE_DATA.name,
+            imageUrl: videoPreviewUrl,
+            duration: '0:00', // Placeholder, could be implemented with a video metadata library
+            description,
+            hashtags,
+            model: selectedModel,
+            prompt,
+        };
+
+        try {
+            const storedPosts = JSON.parse(localStorage.getItem('siloSpherePosts') || '[]');
+            const updatedPosts = [newPost, ...storedPosts];
+            localStorage.setItem('siloSpherePosts', JSON.stringify(updatedPosts));
+            alert('Post successful!');
+            setActivePage('home');
+        } catch (error) {
+            console.error("Could not save post to local storage", error);
+            alert("There was an error saving your post.");
+        }
+    };
+
+    const renderUploadContent = () => {
+        if (!uploadedFile || !videoPreviewUrl) {
+            return <UploadArea onFileSelect={handleFileSelect} />;
+        }
+
+        if (!isPromptSubmitted) {
+            return (
+                <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-8 animate-fade-in">
+                    <video src={videoPreviewUrl} className="w-full max-w-sm aspect-[9/16] rounded-2xl object-cover bg-black/50 border border-white/10" controls autoPlay loop muted />
+                    <div>
+                        <h3 className="text-xl font-bold text-center mb-4">Select the AI model you used</h3>
+                        <div className="flex overflow-x-auto space-x-3 pb-2 -mx-4 px-4 no-scrollbar">
+                            {AI_MODELS.map(model => (
+                                <button 
+                                    key={model} 
+                                    onClick={() => setSelectedModel(model)}
+                                    className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 border ${selectedModel === model ? 'bg-white text-black border-white' : 'bg-white/5 border-white/20 hover:bg-white/10'}`}
+                                >
+                                    {model}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {selectedModel && (
+                        <div className="w-full animate-fade-in">
+                            <label htmlFor="prompt-input" className="block text-xl font-bold mb-3">What prompt did you use?</label>
+                            <textarea
+                                id="prompt-input"
+                                value={prompt}
+                                onChange={e => setPrompt(e.target.value)}
+                                placeholder={`e.g., A cinematic shot of a raccoon in a library...`}
+                                className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder-gray-400 resize-none"
+                            />
+                            <div className="flex justify-end gap-4 mt-4">
+                               <button onClick={resetUpload} className="px-6 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
+                                   Start Over
+                               </button>
+                                <button 
+                                    onClick={() => setIsPromptSubmitted(true)} 
+                                    disabled={!prompt}
+                                    className="px-8 py-3 rounded-full text-sm font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto animate-fade-in">
+                <div className="lg:col-span-2 space-y-6">
+                    <h2 className="text-3xl font-bold">Add your video details</h2>
+                    <div>
+                        <label htmlFor="title" className="block text-lg font-semibold mb-2">Title</label>
+                        <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50" />
+                    </div>
+                     <div>
+                        <label htmlFor="description" className="block text-lg font-semibold mb-2">Description</label>
+                        <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} className="w-full h-36 p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 resize-none" />
+                    </div>
+                     <div>
+                        <label htmlFor="hashtags" className="block text-lg font-semibold mb-2">Hashtags</label>
+                        <input type="text" id="hashtags" placeholder="#AI #generative #sora" value={hashtags} onChange={e => setHashtags(e.target.value)} className="w-full p-3 bg-white/5 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50" />
+                    </div>
+                     <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-sm text-gray-400">Prompt Used ({selectedModel})</p>
+                                <p className="font-mono text-gray-200">{prompt}</p>
+                            </div>
+                            <button onClick={() => setIsPromptSubmitted(false)} className="text-sm font-semibold hover:underline">Edit</button>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-4 pt-4">
+                       <button onClick={resetUpload} className="px-6 py-3 rounded-full text-sm font-semibold text-gray-300 bg-white/10 hover:bg-white/20 transition-colors">
+                           Cancel
+                       </button>
+                        <button onClick={handlePost} className="px-10 py-3 rounded-full text-sm font-semibold bg-white text-black hover:opacity-90 transition-opacity">
+                            Post
+                        </button>
+                    </div>
+                </div>
+                <div className="flex flex-col items-center lg:items-start pt-12">
+                     <div className="relative w-48 group">
+                        <video src={videoPreviewUrl} className="w-full aspect-[9/16] rounded-xl object-cover bg-black/50" loop muted autoPlay />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex items-center justify-center">
+                           <button className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30 hover:bg-black/80">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                                Edit Thumbnail
+                           </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-fade-in">
@@ -60,7 +261,7 @@ const CreatePage: React.FC = () => {
             <div className="flex justify-center mb-12">
                 <div className="bg-white/5 p-1 rounded-full flex items-center gap-2 border border-white/10">
                     <button 
-                        onClick={() => setMode('create')}
+                        onClick={() => { setMode('create'); resetUpload(); }}
                         className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${mode === 'create' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
                         Create with AI
@@ -109,7 +310,7 @@ const CreatePage: React.FC = () => {
                 </div>
             )}
 
-            {mode === 'upload' && <UploadArea />}
+            {mode === 'upload' && renderUploadContent()}
         </div>
     );
 };

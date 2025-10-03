@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DAILY_INSPIRATION, TOP_VIDEOS, RECENT_VIDEOS, TRENDING_SHORTS } from '../constants';
 import InspirationCard from './InspirationCard';
 import VideoCard from './VideoCard';
@@ -17,10 +17,23 @@ const VideoSection: React.FC<{ title: string; videos: Video[] }> = ({ title, vid
 );
 
 const HomePage: React.FC = () => {
+  const [allRecentVideos, setAllRecentVideos] = useState<Video[]>(RECENT_VIDEOS);
+
+  useEffect(() => {
+    try {
+      const storedPosts = JSON.parse(localStorage.getItem('siloSpherePosts') || '[]') as Video[];
+      setAllRecentVideos([...storedPosts, ...RECENT_VIDEOS]);
+    } catch (error) {
+      console.error("Failed to parse posts from local storage", error);
+      setAllRecentVideos(RECENT_VIDEOS);
+    }
+  }, []);
+
+
   return (
     <div className="animate-fade-in">
       <header className="mb-12">
-        <h1 className="text-5xl font-extrabold text-white tracking-tight">Welcome to your Social app filled with AI</h1>
+        <h1 className="text-5xl font-extrabold text-white tracking-tight">Welcome to SiloSphere</h1>
         <p className="text-lg text-gray-400 mt-2">A social experience powered by AI.</p>
       </header>
 
@@ -40,7 +53,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <VideoSection title="Recent Videos" videos={RECENT_VIDEOS} />
+      <VideoSection title="Recent Videos" videos={allRecentVideos} />
 
       <section>
         <h2 className="text-3xl font-bold mb-6 text-gray-200">Other Sections</h2>
