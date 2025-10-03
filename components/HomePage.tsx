@@ -37,6 +37,7 @@ const HomePage: React.FC = () => {
           id: post.id,
           title: post.title,
           creator: post.creatorName,
+          creatorId: post.profileId,
           imageUrl: post.imageUrl,
           duration: post.duration,
           youtubeId: post.youtubeId,

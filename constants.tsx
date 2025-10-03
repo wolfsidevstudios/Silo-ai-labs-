@@ -15,7 +15,7 @@ const ClipsIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
 
 const SiloAiIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25c.828 0 1.5.672 1.5 1.5v1.235c.421.13.82.312 1.178.536m-3.356 0A12.015 12.015 0 0 0 12 4.5v-1.235c-.421.13-.82.312-1.178.536m3.356 0a3.75 3.75 0 0 1 2.23 6.643c.12.339.227.688.32 1.045m-4.55 0a3.75 3.75 0 0 0-2.23 6.643c-.12.339-.227.688-.32 1.045m4.55 0c.093.357.199.706.32 1.045m0 0a3.75 3.75 0 0 1-4.137 2.285c-.421-.13-.82-.312-1.178-.536m4.137-2.285a3.75 3.75 0 0 0 4.137 2.285c.421-.13.82-.312 1.178-.536m-4.137-2.285c.328 0 .644-.047.95-.135m-1.9 0c-.306.088-.622.135-.95.135m0 0a3.75 3.75 0 0 1-2.23-6.643c-.12-.339-.227-.688-.32-1.045m4.55 0a3.75 3.75 0 0 0 2.23-6.643c.12-.339.227-.688.32-1.045m-4.55 0c-.093-.357-.199-.706-.32-1.045m0 0a3.75 3.75 0 0 1 4.137-2.285c.421.13.82.312 1.178.536m-4.137 2.285a3.75 3.75 0 0 0-4.137-2.285c-.421.13-.82.312-1.178-.536m0 0a3.75 3.75 0 0 1-2.23 6.643c-.12.339-.227.688-.32 1.045m2.55 0a3.75 3.75 0 0 0-2.23 6.643c.12.339.227.688.32 1.045m2.55 0c.093.357.199.706.32 1.045" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25c.828 0 1.5.672 1.5 1.5v1.235c.421.13.82.312 1.178.536m-3.356 0A12.015 12.015 0 0 0 12 4.5v-1.235c-.421.13-.82.312-1.178-.536m3.356 0a3.75 3.75 0 0 1 2.23 6.643c.12.339.227.688.32 1.045m-4.55 0a3.75 3.75 0 0 0-2.23 6.643c-.12.339-.227.688-.32 1.045m4.55 0c.093.357.199.706.32 1.045m0 0a3.75 3.75 0 0 1-4.137 2.285c-.421-.13-.82-.312-1.178-.536m4.137-2.285a3.75 3.75 0 0 0 4.137 2.285c.421-.13.82-.312 1.178-.536m-4.137-2.285c.328 0 .644-.047.95-.135m-1.9 0c-.306.088-.622.135-.95.135m0 0a3.75 3.75 0 0 1-2.23-6.643c-.12-.339-.227-.688-.32-1.045m4.55 0a3.75 3.75 0 0 0 2.23-6.643c.12-.339.227-.688.32-1.045m-4.55 0c-.093-.357-.199-.706-.32-1.045m0 0a3.75 3.75 0 0 1 4.137-2.285c.421.13.82.312 1.178.536m-4.137 2.285a3.75 3.75 0 0 0-4.137-2.285c-.421.13-.82.312-1.178-.536m0 0a3.75 3.75 0 0 1-2.23 6.643c-.12.339-.227.688-.32 1.045m2.55 0a3.75 3.75 0 0 0-2.23 6.643c.12.339.227.688.32 1.045m2.55 0c.093.357.199.706.32 1.045" />
     </svg>
 );
 
@@ -94,10 +94,10 @@ export const RECENT_VIDEOS: Video[] = [
 ];
 
 export const CLIPS_DATA: Clip[] = [
-  { id: 1, videoUrl: 'https://picsum.photos/seed/clip1/400/700', user: { name: '@AI_Explorer', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }, description: 'Watching generative art unfold is mesmerizing! #AIart #CreativeAI', likes: '1.2M', comments: '3,452', shares: '25.6k' },
-  { id: 2, videoUrl: 'https://picsum.photos/seed/clip2/400/700', user: { name: '@SynthwaveDreamer', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' }, description: 'AI creating sounds from my brainwaves. The future is now.', likes: '890k', comments: '1,987', shares: '12.1k' },
-  { id: 3, videoUrl: 'https://picsum.photos/seed/clip3/400/700', user: { name: '@CodeWizard', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f' }, description: 'Just taught my neural net to beat me at chess. I have mixed feelings.', likes: '543k', comments: '8,123', shares: '9.8k' },
-  { id: 4, videoUrl: 'https://picsum.photos/seed/clip4/400/700', user: { name: '@DataIsBeautiful', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a' }, description: 'Climate change data visualized by a GAN. Sobering but incredible.', likes: '2.5M', comments: '15.2k', shares: '88.3k' },
+  { id: 1, videoUrl: 'https://picsum.photos/seed/clip1/400/700', user: { id: 10, name: '@AI_Explorer', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }, description: 'Watching generative art unfold is mesmerizing! #AIart #CreativeAI', likes: '1.2M', comments: '3,452', shares: '25.6k' },
+  { id: 2, videoUrl: 'https://picsum.photos/seed/clip2/400/700', user: { id: 11, name: '@SynthwaveDreamer', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' }, description: 'AI creating sounds from my brainwaves. The future is now.', likes: '890k', comments: '1,987', shares: '12.1k' },
+  { id: 3, videoUrl: 'https://picsum.photos/seed/clip3/400/700', user: { id: 12, name: '@CodeWizard', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f' }, description: 'Just taught my neural net to beat me at chess. I have mixed feelings.', likes: '543k', comments: '8,123', shares: '9.8k' },
+  { id: 4, videoUrl: 'https://picsum.photos/seed/clip4/400/700', user: { id: 13, name: '@DataIsBeautiful', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a' }, description: 'Climate change data visualized by a GAN. Sobering but incredible.', likes: '2.5M', comments: '15.2k', shares: '88.3k' },
 ];
 
 export const INSPIRATIONS_GRID: Inspiration[] = [
@@ -118,8 +118,8 @@ export const USER_PROFILE_DATA: UserProfile = {
   bio: 'Exploring the intersection of art and artificial intelligence. \nJoin me on a journey through generative worlds.',
   stats: {
     posts: 42,
-    followers: '1.2M',
-    following: '256',
+    followers: 1200000,
+    following: 256,
   }
 };
 

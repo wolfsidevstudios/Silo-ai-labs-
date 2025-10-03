@@ -23,7 +23,7 @@ const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete }) => 
       username: `@${username}`,
       avatar: avatar,
       bio: bio,
-      stats: { posts: 0, followers: '0', following: '0' },
+      stats: { posts: 0, followers: 0, following: 0 },
     };
 
     const { data, error } = await supabase

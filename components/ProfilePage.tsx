@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { USER_PROFILE_DATA, USER_CREATIONS } from '../constants';
+import { USER_CREATIONS } from '../constants';
 import type { Creation, UserProfile } from '../types';
 import ProfileOnboarding from './ProfileOnboarding';
 import { supabase } from '../lib/supabase';
 
+const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toString();
+};
+
 const Stat: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
     <div className="text-center">
-        <p className="text-2xl font-bold text-white">{value}</p>
+        <p className="text-2xl font-bold text-white">{typeof value === 'number' ? formatNumber(value) : value}</p>
         <p className="text-sm text-gray-400">{label}</p>
     </div>
 );
@@ -30,9 +40,16 @@ const ProfilePage: React.FC = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [activeTab, setActiveTab] = useState('Creations');
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [isFollowing, setIsFollowing] = useState(false);
     const tabs = ['Creations', 'Clips', 'Liked'];
 
     useEffect(() => {
+        const id = localStorage.getItem('siloSphereUserProfileId');
+        if (id) {
+            setCurrentUserId(parseInt(id, 10));
+        }
+
         const onboardingComplete = localStorage.getItem('siloSphereOnboardingComplete') === 'true';
         if (onboardingComplete) {
             const fetchProfile = async () => {
@@ -46,7 +63,6 @@ const ProfilePage: React.FC = () => {
 
                     if (error) {
                         console.error('Error fetching profile:', error);
-                        // Profile ID exists but fetch failed, force re-onboarding
                         localStorage.removeItem('siloSphereOnboardingComplete');
                         localStorage.removeItem('siloSphereUserProfileId');
                         setShowOnboarding(true);
@@ -54,7 +70,6 @@ const ProfilePage: React.FC = () => {
                         setProfile(data);
                     }
                 } else {
-                    // Onboarding complete but no ID, this state is inconsistent. Force re-onboarding.
                     setShowOnboarding(true);
                 }
             };
@@ -63,14 +78,53 @@ const ProfilePage: React.FC = () => {
             setShowOnboarding(true);
         }
     }, []);
+    
+    useEffect(() => {
+        if (!currentUserId || !profile || !profile.id || currentUserId === profile.id) {
+            return;
+        }
+
+        const checkFollowStatus = async () => {
+             const { count } = await supabase
+                .from('followers')
+                .select('*', { count: 'exact', head: true })
+                .eq('followerId', currentUserId)
+                .eq('followingId', profile.id);
+            setIsFollowing(!!count && count > 0);
+        };
+        checkFollowStatus();
+    }, [currentUserId, profile]);
 
     const handleOnboardingComplete = (newProfile: UserProfile) => {
         if (newProfile.id) {
             localStorage.setItem('siloSphereUserProfileId', newProfile.id.toString());
+            setCurrentUserId(newProfile.id);
         }
         localStorage.setItem('siloSphereOnboardingComplete', 'true');
         setProfile(newProfile);
         setShowOnboarding(false);
+    };
+
+    const handleFollowToggle = async () => {
+        if (!currentUserId || !profile || !profile.id) return;
+
+        const rpcName = isFollowing ? 'unfollow_user' : 'follow_user';
+        const { error } = await supabase.rpc(rpcName, {
+            follower_id: currentUserId,
+            following_id: profile.id
+        });
+
+        if (!error) {
+            setIsFollowing(!isFollowing);
+            setProfile(p => {
+                if (!p) return null;
+                const newFollowerCount = p.stats.followers + (isFollowing ? -1 : 1);
+                return {...p, stats: {...p.stats, followers: newFollowerCount }};
+            });
+        } else {
+            console.error(`Error with ${rpcName}: `, error);
+            alert('An error occurred. Please try again.');
+        }
     };
 
     if (showOnboarding) {
@@ -84,6 +138,8 @@ const ProfilePage: React.FC = () => {
             </div>
         );
     }
+    
+    const isOwnProfile = currentUserId === profile.id;
 
     return (
         <div className="animate-fade-in max-w-4xl mx-auto">
@@ -92,7 +148,16 @@ const ProfilePage: React.FC = () => {
                 <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                         <h1 className="text-3xl font-bold">{profile.username}</h1>
-                        <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>
+                        {isOwnProfile ? (
+                            <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>
+                        ) : (
+                            <button
+                                onClick={handleFollowToggle}
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${isFollowing ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white text-black hover:bg-gray-200'}`}
+                            >
+                                {isFollowing ? 'Following' : 'Follow'}
+                            </button>
+                        )}
                     </div>
                      <div className="flex justify-center md:justify-start gap-8 mb-4">
                         <Stat value={profile.stats.posts} label="posts" />

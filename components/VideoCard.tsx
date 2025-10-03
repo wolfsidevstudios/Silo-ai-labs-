@@ -1,6 +1,6 @@
-
 import React from 'react';
 import type { Video } from '../types';
+import FollowButton from './FollowButton';
 
 interface VideoCardProps {
   video: Video;
@@ -23,7 +23,10 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
       </div>
       <div className="mt-3">
         <h4 className="text-lg font-semibold text-gray-100 truncate group-hover:text-white transition-colors">{video.title}</h4>
-        <p className="text-sm text-gray-400">{video.creator}</p>
+        <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-400">{video.creator}</p>
+            <FollowButton targetUserId={video.creatorId} />
+        </div>
       </div>
     </div>
   );

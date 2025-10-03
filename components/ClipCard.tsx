@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Clip } from '../types';
+import FollowButton from './FollowButton';
 
 interface ClipCardProps {
     clip: Clip;
@@ -24,6 +25,7 @@ const ClipCard: React.FC<ClipCardProps> = ({ clip }) => {
                 <div className="flex items-center gap-3 mb-2">
                     <img src={clip.user.avatar} alt={clip.user.name} className="w-10 h-10 rounded-full border-2 border-white/80" />
                     <h3 className="font-bold">{clip.user.name}</h3>
+                    <FollowButton targetUserId={clip.user.id} />
                 </div>
                 <p className="text-sm text-gray-200">{clip.description}</p>
             </div>
