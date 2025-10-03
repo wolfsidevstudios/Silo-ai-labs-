@@ -36,24 +36,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     
     useEffect(() => {
-        const initialize = async () => {
-            try {
-                const { data: { session: initialSession } } = await supabase.auth.getSession();
-                setSession(initialSession);
-                setUser(initialSession?.user ?? null);
-                if (initialSession?.user) {
-                    const fetchedProfile = await fetchProfile(initialSession.user.id);
-                    setProfile(fetchedProfile);
-                }
-            } catch (error) {
-                console.error("Error during initial session fetch:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initialize();
-
+        // Supabase's onAuthStateChange listener handles the initial session check on page load,
+        // as well as any subsequent changes (sign in, sign out).
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             setSession(newSession);
             setUser(newSession?.user ?? null);
@@ -63,6 +47,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             } else {
                 setProfile(null);
             }
+            // The loading state is set to false only after the initial auth check is complete.
+            setLoading(false);
         });
 
         return () => {
