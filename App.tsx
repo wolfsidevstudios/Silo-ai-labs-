@@ -1,20 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import type { Page } from './types';
 import FloatingNav from './components/FloatingNav';
-import HomePage from './components/HomePage';
-import ClipsPage from './components/ClipsPage';
-import InspirationPage from './components/InspirationPage';
-import ExplorePage from './components/ExplorePage';
-import CreatePage from './components/CreatePage';
-import ProfilePage from './components/ProfilePage';
-import BattlePage from './components/BattlePage';
-import SiloAiPage from './components/SiloAiPage';
 import MobileNav from './components/MobileNav';
 import AuthModal from './components/AuthModal';
 import ProfileOnboarding from './components/ProfileOnboarding';
 import { useAuth } from './contexts/AuthContext';
 import SplashScreen from './components/SplashScreen';
+
+// Dynamically import page components for code-splitting
+const HomePage = lazy(() => import('./components/HomePage'));
+const ClipsPage = lazy(() => import('./components/ClipsPage'));
+const InspirationPage = lazy(() => import('./components/InspirationPage'));
+const ExplorePage = lazy(() => import('./components/ExplorePage'));
+const CreatePage = lazy(() => import('./components/CreatePage'));
+const ProfilePage = lazy(() => import('./components/ProfilePage'));
+const BattlePage = lazy(() => import('./components/BattlePage'));
+const SiloAiPage = lazy(() => import('./components/SiloAiPage'));
+
 
 const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
@@ -29,6 +33,12 @@ const useIsMobile = (breakpoint = 768) => {
 
   return isMobile;
 };
+
+const PageLoader: React.FC = () => (
+    <div className="flex items-center justify-center h-full w-full">
+        <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+    </div>
+);
 
 const App: React.FC = () => {
     const { session, profile, loading } = useAuth();
@@ -84,7 +94,9 @@ const App: React.FC = () => {
                     <FloatingNav activePage={activePage} setActivePage={setActivePage} />
                 )}
                 <main className={`transition-all duration-300 ${isMobile ? 'px-4 pt-6 pb-28' : 'pl-32 pr-8 py-8'}`}>
-                    {renderPage()}
+                    <Suspense fallback={<PageLoader />}>
+                        {renderPage()}
+                    </Suspense>
                 </main>
             </>
         );
