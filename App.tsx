@@ -35,16 +35,20 @@ const App: React.FC = () => {
     const { session, profile, loading } = useAuth();
     const [activePage, setActivePage] = useState<Page>('home');
     const isMobile = useIsMobile();
-    const [isSplashVisible, setIsSplashVisible] = useState(true);
+    // Show splash screen while loading, but for a minimum amount of time for animations.
+    const [isShowingSplash, setIsShowingSplash] = useState(true);
 
     useEffect(() => {
-      // Set a timer to hide the splash screen after 10 seconds
-      const splashTimer = setTimeout(() => {
-        setIsSplashVisible(false);
-      }, 10000);
+      // When auth loading is finished, set a short timer to hide the splash screen.
+      // This ensures a smooth animation without a long, forced wait.
+      if (!loading) {
+        const timer = setTimeout(() => {
+          setIsShowingSplash(false);
+        }, 2000); // Minimum splash time
   
-      return () => clearTimeout(splashTimer);
-    }, []);
+        return () => clearTimeout(timer);
+      }
+    }, [loading]);
   
     // Determine the application's state based on auth context
     const needsAuth = !loading && !session;
@@ -66,7 +70,7 @@ const App: React.FC = () => {
     };
 
     // Render based on the state
-    if (loading || isSplashVisible) {
+    if (loading || isShowingSplash) {
         return <SplashScreen />;
     }
 
