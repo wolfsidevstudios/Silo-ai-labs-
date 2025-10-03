@@ -27,7 +27,6 @@ const ProfileOnboarding: React.FC = () => {
     setIsSubmitting(true);
     
     const profileToUpdate = {
-      id: session.user.id,
       name,
       username: `@${username}`,
       avatar,
@@ -48,7 +47,11 @@ const ProfileOnboarding: React.FC = () => {
       // No need to set isSubmitting to false on success, as the component will unmount.
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      alert('Could not update profile. The username might already be taken.');
+      if (error?.code === '23505') {
+          alert('This username is already taken. Please choose another one.');
+      } else {
+          alert('Could not update your profile. Please try again.');
+      }
       setIsSubmitting(false);
     }
   };
