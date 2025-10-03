@@ -10,6 +10,7 @@ import ProfilePage from './components/ProfilePage';
 import BattlePage from './components/BattlePage';
 import SiloAiPage from './components/SiloAiPage';
 import MobileNav from './components/MobileNav';
+import WelcomeModal from './components/WelcomeModal';
 
 const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
@@ -24,7 +25,15 @@ const useIsMobile = (breakpoint = 768) => {
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('home');
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const profileId = localStorage.getItem('siloSphereUserProfileId');
+    if (!profileId) {
+      setShowWelcomeModal(true);
+    }
+  }, []);
 
   const renderContent = () => {
     switch (activePage) {
@@ -52,9 +61,21 @@ const App: React.FC = () => {
   const mainPadding = isMobile 
     ? "px-4 pt-8 pb-32"
     : "pl-32 pr-8 pt-12 pb-8";
+    
+  const handleAuthAction = () => {
+    setActivePage('profile');
+    setShowWelcomeModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
+      {showWelcomeModal && (
+        <WelcomeModal 
+          onSignUp={handleAuthAction}
+          onSignIn={handleAuthAction}
+          onGuest={() => setShowWelcomeModal(false)}
+        />
+      )}
       {isMobile ? (
         <MobileNav activePage={activePage} setActivePage={setActivePage} />
       ) : (
