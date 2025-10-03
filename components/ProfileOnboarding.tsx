@@ -28,7 +28,7 @@ const ProfileOnboarding: React.FC = () => {
     
     const profileToUpdate = {
       name,
-      username: `@${username}`,
+      username: username,
       avatar,
       bio,
     };

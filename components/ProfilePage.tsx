@@ -119,7 +119,7 @@ const ProfilePage: React.FC = () => {
                 <img src={viewedProfile.avatar} alt={viewedProfile.name} className="w-36 h-36 rounded-full border-4 border-white/20 object-cover" />
                 <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                        <h1 className="text-3xl font-bold">{viewedProfile.username}</h1>
+                        <h1 className="text-3xl font-bold">@{viewedProfile.username}</h1>
                         {isOwnProfile ? (
                             <>
                             <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>

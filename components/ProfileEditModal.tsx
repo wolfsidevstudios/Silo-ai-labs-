@@ -11,7 +11,7 @@ interface ProfileEditModalProps {
 const ProfileEditModal: React.FC<ProfileEditModalProps> = ({ profile, onClose }) => {
   const { refreshProfile } = useAuth();
   const [name, setName] = useState(profile.name || '');
-  const [username, setUsername] = useState(profile.username?.replace('@', '') || '');
+  const [username, setUsername] = useState(profile.username || '');
   const [bio, setBio] = useState(profile.bio || '');
   const [avatar, setAvatar] = useState(profile.avatar || '');
   const [loading, setLoading] = useState(false);
@@ -25,18 +25,24 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({ profile, onClose })
     setLoading(true);
     setError(null);
     
+    const sanitizedUsername = username.replace(/[^a-zA-Z0-9_]/g, '');
+
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
         name,
-        username: `@${username.replace(/[^a-zA-Z0-9_]/g, '')}`,
+        username: sanitizedUsername,
         bio,
         avatar
       })
       .eq('id', profile.id);
 
     if (updateError) {
-      setError("Failed to update profile. The username might be taken.");
+      if (updateError.code === '23505') {
+        setError("This username is already taken. Please choose another one.");
+      } else {
+        setError("Failed to update profile. Please try again.");
+      }
       console.error(updateError);
     } else {
       await refreshProfile();
