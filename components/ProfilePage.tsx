@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { USER_PROFILE_DATA, USER_CREATIONS } from '../constants';
-import type { Creation } from '../types';
+import type { Creation, UserProfile } from '../types';
+import ProfileOnboarding from './ProfileOnboarding';
 
 const Stat: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
     <div className="text-center">
@@ -20,33 +21,62 @@ const CreationGridItem: React.FC<{ item: Creation }> = ({ item }) => (
             </div>
         )}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            {/* You could add likes/comments count here */}
         </div>
     </div>
 );
 
-
 const ProfilePage: React.FC = () => {
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [showOnboarding, setShowOnboarding] = useState(false);
     const [activeTab, setActiveTab] = useState('Creations');
     const tabs = ['Creations', 'Clips', 'Liked'];
+
+    useEffect(() => {
+        const onboardingComplete = localStorage.getItem('siloSphereOnboardingComplete') === 'true';
+        if (onboardingComplete) {
+            const savedProfile = localStorage.getItem('siloSphereUserProfile');
+            setProfile(savedProfile ? JSON.parse(savedProfile) : USER_PROFILE_DATA); // Fallback to default
+        } else {
+            setShowOnboarding(true);
+        }
+    }, []);
+
+    const handleOnboardingComplete = (newProfile: UserProfile) => {
+        localStorage.setItem('siloSphereUserProfile', JSON.stringify(newProfile));
+        localStorage.setItem('siloSphereOnboardingComplete', 'true');
+        setProfile(newProfile);
+        setShowOnboarding(false);
+    };
+
+    if (showOnboarding) {
+        return <ProfileOnboarding onComplete={handleOnboardingComplete} />;
+    }
+
+    if (!profile) {
+        return (
+            <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
+                <div className="text-gray-400">Loading Profile...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-fade-in max-w-4xl mx-auto">
             <header className="flex flex-col md:flex-row items-center gap-8 mb-12">
-                <img src={USER_PROFILE_DATA.avatar} alt={USER_PROFILE_DATA.name} className="w-36 h-36 rounded-full border-4 border-white/20" />
+                <img src={profile.avatar} alt={profile.name} className="w-36 h-36 rounded-full border-4 border-white/20 object-cover" />
                 <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                        <h1 className="text-3xl font-bold">{USER_PROFILE_DATA.username}</h1>
+                        <h1 className="text-3xl font-bold">{profile.username}</h1>
                         <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>
                     </div>
                      <div className="flex justify-center md:justify-start gap-8 mb-4">
-                        <Stat value={USER_PROFILE_DATA.stats.posts} label="posts" />
-                        <Stat value={USER_PROFILE_DATA.stats.followers} label="followers" />
-                        <Stat value={USER_PROFILE_DATA.stats.following} label="following" />
+                        <Stat value={profile.stats.posts} label="posts" />
+                        <Stat value={profile.stats.followers} label="followers" />
+                        <Stat value={profile.stats.following} label="following" />
                     </div>
                     <div>
-                        <h2 className="font-bold text-white">{USER_PROFILE_DATA.name}</h2>
-                        <p className="text-gray-400 whitespace-pre-line">{USER_PROFILE_DATA.bio}</p>
+                        <h2 className="font-bold text-white">{profile.name}</h2>
+                        <p className="text-gray-400 whitespace-pre-line">{profile.bio}</p>
                     </div>
                 </div>
             </header>
