@@ -12,12 +12,19 @@ const ProfileOnboarding: React.FC = () => {
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('');
   const [bio, setBio] = useState('Welcome to my SiloSphere!');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFinish = async () => {
     if (!session?.user) {
-        alert("Authentication error. Please sign in again.");
-        return;
+      alert("Authentication error. Please sign in again.");
+      return;
     }
+    if (!name.trim() || !username.trim()) {
+      alert("Please make sure your name and username are filled out.");
+      return;
+    }
+
+    setIsSubmitting(true);
     
     const profileToUpdate = {
       id: session.user.id,
@@ -27,16 +34,22 @@ const ProfileOnboarding: React.FC = () => {
       bio,
     };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(profileToUpdate)
-      .eq('id', session.user.id);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileToUpdate)
+        .eq('id', session.user.id);
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+      
+      await refreshProfile();
+      // No need to set isSubmitting to false on success, as the component will unmount.
+    } catch (error: any) {
       console.error('Error updating profile:', error);
       alert('Could not update profile. The username might already be taken.');
-    } else {
-      await refreshProfile();
+      setIsSubmitting(false);
     }
   };
 
@@ -68,7 +81,7 @@ const ProfileOnboarding: React.FC = () => {
             </div>
             <button
               onClick={() => setStep('avatar')}
-              disabled={!name || !username}
+              disabled={!name.trim() || !username.trim()}
               className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
             >
               Next
@@ -130,9 +143,10 @@ const ProfileOnboarding: React.FC = () => {
              </div>
              <button
               onClick={handleFinish}
-              className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
+              disabled={isSubmitting || !name.trim() || !username.trim()}
+              className="w-full px-8 py-4 rounded-full font-semibold bg-white text-black disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 transform hover:-translate-y-px active:translate-y-px active:shadow-inner transition-all duration-200 ease-in-out"
             >
-              Start Using SiloSphere
+              {isSubmitting ? 'Saving...' : 'Start Using SiloSphere'}
             </button>
           </div>
         );
