@@ -3,6 +3,7 @@ import { USER_CREATIONS } from '../constants';
 import type { Creation, UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import ProfileEditModal from './ProfileEditModal';
 
 const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -38,16 +39,14 @@ const CreationGridItem: React.FC<{ item: Creation }> = ({ item }) => (
 
 const ProfilePage: React.FC = () => {
     const { profile: ownProfile, session, signOut } = useAuth();
-    // This state will hold the profile being viewed, which might not be the logged-in user's
     const [viewedProfile, setViewedProfile] = useState<UserProfile | null>(null);
     const [activeTab, setActiveTab] = useState('Creations');
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
     
     const tabs = ['Creations', 'Clips', 'Liked'];
 
-    // For now, we assume the profile page is always for the logged-in user.
-    // A future implementation would use routing like /profile/:username
     useEffect(() => {
         if(ownProfile) {
             setViewedProfile(ownProfile);
@@ -113,6 +112,9 @@ const ProfilePage: React.FC = () => {
 
     return (
         <div className="animate-fade-in max-w-4xl mx-auto">
+             {isEditing && viewedProfile && (
+                <ProfileEditModal profile={viewedProfile} onClose={() => setIsEditing(false)} />
+            )}
             <header className="flex flex-col md:flex-row items-center gap-8 mb-12">
                 <img src={viewedProfile.avatar} alt={viewedProfile.name} className="w-36 h-36 rounded-full border-4 border-white/20 object-cover" />
                 <div className="flex-1 text-center md:text-left">
@@ -120,7 +122,7 @@ const ProfilePage: React.FC = () => {
                         <h1 className="text-3xl font-bold">{viewedProfile.username}</h1>
                         {isOwnProfile ? (
                             <>
-                            <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>
+                            <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-semibold">Edit Profile</button>
                             <button onClick={signOut} className="px-4 py-2 bg-red-600/20 text-red-300 rounded-lg hover:bg-red-600/40 transition-colors text-sm font-semibold">Sign Out</button>
                             </>
                         ) : (
